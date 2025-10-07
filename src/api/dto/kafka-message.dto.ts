@@ -1,4 +1,4 @@
-import { IsString, IsObject, IsEnum, IsOptional } from 'class-validator';
+import { IsString, IsObject, IsEnum, IsOptional, IsDateString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { PriorityEnum } from 'src/entities/enums/priority.enum';
 import { EventTypeEnum } from 'src/entities/enums/event-type.enum';
@@ -21,6 +21,11 @@ export class KafkaMessageHeadersDto {
     @IsOptional()
     @IsEnum(EventStageEnum)
     eventStage?: EventStageEnum;
+
+    @ApiProperty({ description: 'Retry at', example: '2021-01-01T00:00:00.000Z', required: false })
+    @IsOptional()
+    @IsDateString()
+    retryAt?: Date;
 }
 
 export class KafkaMessageDto {

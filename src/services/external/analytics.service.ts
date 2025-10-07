@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigurationService } from '../common/configurations/configuration.service';
+import { ConfigurationService } from '../../common/configurations/configuration.service';
 import { AnalyticsConfigDto } from 'src/common/configurations/dtos/analytics-config.dto';
 
 @Injectable()

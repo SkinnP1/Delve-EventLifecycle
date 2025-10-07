@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigurationService } from '../common/configurations/configuration.service';
+import { ConfigurationService } from '../../common/configurations/configuration.service';
 import { TestRunnerConfigDto } from 'src/common/configurations/dtos/test-runner-config.dto';
 
 @Injectable()

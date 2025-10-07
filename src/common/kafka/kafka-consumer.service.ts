@@ -1,6 +1,10 @@
 import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
 import { ConfigurationService } from '../configurations/configuration.service';
+import { KafkaMessageDto } from 'src/api/dto/kafka-message.dto';
+import { KafkaProducerService } from './kafka-producer.service';
+import { EVENT_SERVICE_MAPPING, ServiceNameEnum } from '../constants/event-service-mapping.constants';
+import { NotificationService } from 'src/services/internal/notification.service';
 
 @Injectable()
 export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
@@ -8,7 +12,11 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     private kafka: Kafka;
     private consumer: Consumer;
 
-    constructor(private readonly configService: ConfigurationService) { }
+    constructor(
+        private readonly configService: ConfigurationService,
+        private readonly kafkaProducer: KafkaProducerService,
+        private readonly notificationService: NotificationService
+    ) { }
 
     async onModuleInit() {
         const kafkaConfig = this.configService.getKafkaConfig();
@@ -83,56 +91,40 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
-    async pauseConsuming(topics: Array<{ topic: string; partitions?: number[] }>): Promise<void> {
+    async processMessage(payload: EachMessagePayload): Promise<void> {
         try {
-            this.consumer.pause(topics);
-            this.logger.log('Paused message consumption');
+            const message = JSON.parse(payload.message.value.toString());
+            if (message.headers?.retryAt) {
+                const currentTime = new Date();
+                const retryAt = new Date(message.headers.retryAt);
+                if (currentTime > retryAt) {
+                    // Push the event back to topic
+                    await this.kafkaProducer.produceKafkaEvent(message.headers.topic, payload, message.headers.priority + message.headers.referenceId);
+                    return;
+                }
+            }
+            const eventType = message.headers.eventType;
+            const serviceName: ServiceNameEnum = EVENT_SERVICE_MAPPING[eventType];
+            switch (serviceName) {
+                case ServiceNameEnum.USER_SERVICE:
+                    // Handle user created event
+                    this.logger.log(`Processing USER_CREATED event: ${JSON.stringify(message)}`);
+                    break;
+                case ServiceNameEnum.TEST_SERVICE:
+                    // Handle test run event
+                    this.logger.log(`Processing TEST_RUN event: ${JSON.stringify(message)}`);
+                    break;
+                case ServiceNameEnum.NOTIFICATION_SERVICE:
+                    // Handle notification events
+                    this.logger.log(`Processing notification event: ${JSON.stringify(message)}`);
+                    await this.notificationService.processNotificationMessage(message);
+                    break;
+                default:
+                    this.logger.warn(`No handler for service: ${serviceName}`);
+                    break;
+            }
         } catch (error) {
-            this.logger.error('Failed to pause message consumption:', error);
-            throw error;
-        }
-    }
-
-    async resumeConsuming(topics: Array<{ topic: string; partitions?: number[] }>): Promise<void> {
-        try {
-            this.consumer.resume(topics);
-            this.logger.log('Resumed message consumption');
-        } catch (error) {
-            this.logger.error('Failed to resume message consumption:', error);
-            throw error;
-        }
-    }
-
-    async stopConsuming(): Promise<void> {
-        try {
-            await this.consumer.stop();
-            this.logger.log('Stopped message consumption');
-        } catch (error) {
-            this.logger.error('Failed to stop message consumption:', error);
-            throw error;
-        }
-    }
-
-    async commitOffsets(topicPartitions: Array<{ topic: string; partition: number; offset: string }>): Promise<void> {
-        try {
-            await this.consumer.commitOffsets(topicPartitions);
-            this.logger.debug('Committed consumer offsets');
-        } catch (error) {
-            this.logger.error('Failed to commit offsets:', error);
-            throw error;
-        }
-    }
-
-    async seekToOffset(topic: string, partition: number, offset: string): Promise<void> {
-        try {
-            await this.consumer.seek({
-                topic,
-                partition,
-                offset,
-            });
-            this.logger.log(`Seeked to offset ${offset} for topic ${topic}, partition ${partition}`);
-        } catch (error) {
-            this.logger.error(`Failed to seek to offset ${offset} for topic ${topic}, partition ${partition}:`, error);
+            this.logger.error(`Error processing message from topic ${payload.topic}:`, error);
             throw error;
         }
     }

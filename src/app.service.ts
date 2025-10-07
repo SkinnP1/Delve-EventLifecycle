@@ -35,29 +35,12 @@ export class AppService implements OnModuleInit {
                 });
 
                 // Process the message here
-                await this.processKafkaMessage(payload);
+                await this.kafkaConsumer.processMessage(payload);
             });
 
             this.logger.log(`Kafka consumer started and listening to topic: ${topic}`);
         } catch (error) {
             this.logger.error('Failed to start Kafka consumer:', error);
-        }
-    }
-
-    private async processKafkaMessage(payload: any): Promise<void> {
-        try {
-            const message = JSON.parse(payload.message.value.toString());
-            this.logger.log('Processing Kafka message:', message);
-
-            // Add your message processing logic here
-            // For example:
-            // - Save to database
-            // - Trigger business logic
-            // - Send notifications
-            // - etc.
-
-        } catch (error) {
-            this.logger.error('Error processing Kafka message:', error);
         }
     }
 

@@ -45,7 +45,8 @@ export class ApiService {
                 headers: {
                     priority: webhookRequest.priority,
                     referenceId: kafkaEntry.referenceId,
-                    eventType: webhookRequest.event_type
+                    eventType: webhookRequest.event_type,
+                    topicName: kafkaEntry.topicName,
                 },
                 data: webhookRequest.data
             };

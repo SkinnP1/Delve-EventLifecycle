@@ -22,7 +22,8 @@ export class EventLifecycleEntity {
 
     @Column({
         type: 'enum',
-        enum: EventStageEnum
+        enum: EventStageEnum,
+        nullable: true
     })
-    eventStage: EventStageEnum;
+    eventStage?: EventStageEnum;
 }
