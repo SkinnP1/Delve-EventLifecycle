@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { WebhookRequestDto, WebhookResponseDto } from './dto/webhook.dto';
 import { EventStatusResponseDto, EventStatus, CompletedStageDto, ErrorDto } from './dto/event.dto';
 import { HealthResponseDto, HealthStatus, QueueStatsDto, WorkerStatsDto, CircuitBreakerDto } from './dto/health.dto';
+import { KafkaStatusEnum } from 'src/entities/enums/kafka-status.enum';
 
 @Injectable()
 export class ApiService {
@@ -26,7 +27,7 @@ export class ApiService {
 
         return {
             event_id: webhookRequest.event_id,
-            status: 'queued',
+            status: KafkaStatusEnum.QUEUE,
             queued_at: queuedAt
         };
     }

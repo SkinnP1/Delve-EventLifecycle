@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const app_service_1 = require("./app.service");
 const configuration_module_1 = require("./common/configurations/configuration.module");
 const kafka_module_1 = require("./common/kafka/kafka.module");
+const database_module_1 = require("./common/database/database.module");
 const api_module_1 = require("./api/api.module");
 const email_service_1 = require("./services/email.service");
 const sms_service_1 = require("./services/sms.service");
@@ -21,7 +22,7 @@ let AppModule = class AppModule {
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [configuration_module_1.ConfigurationModule, kafka_module_1.KafkaModule, api_module_1.ApiModule],
+        imports: [configuration_module_1.ConfigurationModule, database_module_1.DatabaseModule, kafka_module_1.KafkaModule, api_module_1.ApiModule],
         controllers: [],
         providers: [app_service_1.AppService, email_service_1.EmailService, sms_service_1.SmsService, test_runner_service_1.TestRunnerService, analytics_service_1.AnalyticsService],
     })

@@ -1,16 +1,14 @@
 import { IsString, IsObject, IsOptional, IsEnum, IsDateString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { PriorityEnum } from 'src/entities/enums/priority.enum';
+import { EventTypeEnum } from 'src/entities/enums/event-type.enum';
+import { KafkaStatusEnum } from 'src/entities/enums/kafka-status.enum';
 
-export enum Priority {
-    HIGH = 'high',
-    NORMAL = 'normal',
-    LOW = 'low'
-}
 
 export class WebhookRequestDto {
     @ApiProperty({ description: 'Type of event', example: 'user.created' })
-    @IsString()
-    event_type: string;
+    @IsEnum(EventTypeEnum)
+    event_type: EventTypeEnum;
 
     @ApiProperty({ description: 'Unique event identifier', example: 'evt_123' })
     @IsString()
@@ -20,9 +18,9 @@ export class WebhookRequestDto {
     @IsDateString()
     timestamp: string;
 
-    @ApiProperty({ description: 'Event priority', enum: Priority, example: 'high' })
-    @IsEnum(Priority)
-    priority: Priority;
+    @ApiProperty({ description: 'Event priority', enum: PriorityEnum, example: 'high' })
+    @IsEnum(PriorityEnum)
+    priority: PriorityEnum;
 
     @ApiProperty({ description: 'Event data payload', example: { user_id: 'usr_123', email: 'user@example.com' } })
     @IsObject()
@@ -34,7 +32,7 @@ export class WebhookResponseDto {
     event_id: string;
 
     @ApiProperty({ description: 'Processing status', example: 'queued' })
-    status: string;
+    status: KafkaStatusEnum;
 
     @ApiProperty({ description: 'Timestamp when event was queued', example: '2024-01-01T12:00:00Z' })
     queued_at: string;

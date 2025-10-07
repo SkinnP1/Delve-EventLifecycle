@@ -14,6 +14,7 @@ const common_1 = require("@nestjs/common");
 const configuration_dto_1 = require("./dtos/configuration.dto");
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
+const kafka_entry_entity_1 = require("../../entities/kafka-entry.entity");
 let ConfigurationService = class ConfigurationService {
     constructor() {
         this.config = this.initializeConfiguration();
@@ -179,10 +180,12 @@ let ConfigurationService = class ConfigurationService {
             password: dbConfig.password,
             database: dbConfig.database,
             url: dbConfig.url,
-            entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+            entities: [
+                kafka_entry_entity_1.KafkaEntry,
+            ],
             migrations: [__dirname + '/../**/migrations/*{.ts,.js}'],
             synchronize: this.config.NODE_ENV === 'development',
-            logging: this.config.NODE_ENV === 'development',
+            logging: false,
             ssl: this.config.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
             extra: {
                 connectionLimit: 10,

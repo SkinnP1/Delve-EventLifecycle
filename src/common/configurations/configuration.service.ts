@@ -14,6 +14,7 @@ import { TestRunnerConfigDto } from './dtos/test-runner-config.dto';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { KafkaEntry } from 'src/entities/kafka-entry.entity';
 
 @Injectable()
 export class ConfigurationService {
@@ -218,10 +219,12 @@ export class ConfigurationService {
             password: dbConfig.password,
             database: dbConfig.database,
             url: dbConfig.url,
-            entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+            entities: [
+                KafkaEntry,
+            ],
             migrations: [__dirname + '/../**/migrations/*{.ts,.js}'],
             synchronize: this.config.NODE_ENV === 'development',
-            logging: this.config.NODE_ENV === 'development',
+            logging: false,
             ssl: this.config.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
             extra: {
                 connectionLimit: 10,

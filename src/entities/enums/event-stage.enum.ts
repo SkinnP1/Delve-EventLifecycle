@@ -1,0 +1,16 @@
+export enum EventStageEnum {
+    VALIDATE = 'VALIDATE',
+    AUTHENTICATE = 'AUTHENTICATE',
+    AUTHORIZE = 'AUTHORIZE',
+    TRANSFORM = 'TRANSFORM',
+    ENRICH = 'ENRICH',
+    ROUTE = 'ROUTE',
+    PROCESS = 'PROCESS',
+    NOTIFY = 'NOTIFY',
+    LOG = 'LOG',
+    AUDIT = 'AUDIT',
+    CLEANUP = 'CLEANUP',
+    COMPLETE = 'COMPLETE',
+    RETRY = 'RETRY',
+    DEAD_LETTER = 'DEAD_LETTER'
+}
