@@ -2,7 +2,7 @@ export declare class KafkaConfigDto {
     brokers: string[];
     clientId: string;
     groupId: string;
-    topicPrefix: string;
+    topicName: string;
     autoOffsetReset: string;
     sessionTimeout: number;
     heartbeatInterval: number;

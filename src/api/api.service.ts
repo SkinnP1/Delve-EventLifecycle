@@ -1,35 +1,73 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { WebhookRequestDto, WebhookResponseDto } from './dto/webhook.dto';
 import { EventStatusResponseDto, EventStatus, CompletedStageDto, ErrorDto } from './dto/event.dto';
 import { HealthResponseDto, HealthStatus, QueueStatsDto, WorkerStatsDto, CircuitBreakerDto } from './dto/health.dto';
 import { KafkaStatusEnum } from 'src/entities/enums/kafka-status.enum';
+import { KafkaEntryEntity } from 'src/entities/kafka-entry.entity';
+import { KafkaProducerService } from 'src/common/kafka/kafka-producer.service';
+import { ConfigurationService } from 'src/common/configurations/configuration.service';
 
 @Injectable()
 export class ApiService {
     private events: Map<string, EventStatusResponseDto> = new Map();
-
-    constructor() {
-        this.initializeSampleData();
+    private kafkaTopic: string;
+    constructor(
+        @InjectRepository(KafkaEntryEntity)
+        private readonly kafkaEntryRepository: Repository<KafkaEntryEntity>,
+        private readonly kafkaProducerService: KafkaProducerService,
+        private readonly configurationService: ConfigurationService
+    ) {
+        this.kafkaTopic = this.configurationService.getKafkaConfig().topicName;
     }
 
     // Webhook processing
     async processWebhook(webhookRequest: WebhookRequestDto): Promise<WebhookResponseDto> {
-        // In a real implementation, this would:
-        // 1. Validate the webhook payload
-        // 2. Queue the event for processing
-        // 3. Store event metadata
-        // 4. Return acknowledgment
+        try {
+            // 1. Create kafka_entry record
+            const kafkaEntry = new KafkaEntryEntity();
+            kafkaEntry.topicName = this.kafkaTopic;
+            kafkaEntry.referenceId = uuidv4();
+            kafkaEntry.eventId = webhookRequest.event_id;
+            kafkaEntry.status = KafkaStatusEnum.QUEUE;
+            kafkaEntry.eventType = webhookRequest.event_type;
+            kafkaEntry.priority = webhookRequest.priority;
+            kafkaEntry.retryCount = 0;
+            kafkaEntry.data = webhookRequest.data;
 
-        const queuedAt = new Date().toISOString();
+            // Save to database
+            await this.kafkaEntryRepository.save(kafkaEntry);
 
-        // Simulate queuing the event
-        console.log(`Queuing event ${webhookRequest.event_id} of type ${webhookRequest.event_type}`);
+            // 2. Send message to Kafka
+            const kafkaMessage = {
+                headers: {
+                    priority: webhookRequest.priority,
+                    referenceId: kafkaEntry.referenceId,
+                    eventType: webhookRequest.event_type
+                },
+                data: webhookRequest.data
+            };
 
-        return {
-            event_id: webhookRequest.event_id,
-            status: KafkaStatusEnum.QUEUE,
-            queued_at: queuedAt
-        };
+
+            await this.kafkaProducerService.sendMessage(
+                kafkaEntry.topicName,
+                kafkaMessage,
+                webhookRequest.priority + kafkaEntry.referenceId
+            );
+
+            console.log(`Queuing event ${webhookRequest.event_id} of type ${webhookRequest.event_type} with kafka_entry ID: ${kafkaEntry.referenceId}`);
+
+            return {
+                event_id: kafkaEntry.referenceId,
+                status: KafkaStatusEnum.QUEUE,
+                queued_at: kafkaEntry.createdAt.toISOString()
+            };
+        } catch (error) {
+            console.error(`Failed to process webhook for event ${webhookRequest.event_id}:`, error);
+            throw error;
+        }
     }
 
     // Event status tracking
@@ -81,55 +119,4 @@ export class ApiService {
         };
     }
 
-    private initializeSampleData() {
-        // Sample completed event
-        this.events.set('evt_123', {
-            event_id: 'evt_123',
-            status: EventStatus.COMPLETED,
-            attempts: 1,
-            completed_stages: [
-                { stage: 'Validate', status: 'completed' },
-                { stage: 'Process', status: 'completed' },
-                { stage: 'Send email', status: 'completed' }
-            ],
-            errors: []
-        });
-
-        // Sample processing event
-        this.events.set('evt_456', {
-            event_id: 'evt_456',
-            status: EventStatus.PROCESSING,
-            attempts: 1,
-            completed_stages: [
-                { stage: 'Validate', status: 'completed' }
-            ],
-            errors: []
-        });
-
-        // Sample failed event
-        this.events.set('evt_789', {
-            event_id: 'evt_789',
-            status: EventStatus.FAILED,
-            attempts: 3,
-            completed_stages: [
-                { stage: 'Validate', status: 'completed' }
-            ],
-            errors: [
-                { stage: 'Send email', error: 'timeout' },
-                { stage: 'Send email', error: 'connection refused' }
-            ]
-        });
-
-        // Sample dead letter event
-        this.events.set('evt_dead', {
-            event_id: 'evt_dead',
-            status: EventStatus.DEAD_LETTER,
-            attempts: 5,
-            completed_stages: [],
-            errors: [
-                { stage: 'Validate', error: 'invalid payload' },
-                { stage: 'Process', error: 'database connection failed' }
-            ]
-        });
-    }
 }

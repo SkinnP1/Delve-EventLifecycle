@@ -16,7 +16,7 @@ export class KafkaConfigDto {
 
     @IsNotEmpty()
     @IsString()
-    topicPrefix: string;
+    topicName: string;
 
     @IsNotEmpty()
     @IsString()

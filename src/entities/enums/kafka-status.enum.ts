@@ -2,5 +2,6 @@ export enum KafkaStatusEnum {
     QUEUE = 'QUEUE',
     PROCESSING = 'PROCESSING',
     FAILED = 'FAILED',
-    DLQ = 'DLQ'
+    DLQ = 'DLQ',
+    COMPLETED = 'COMPLETED'
 }

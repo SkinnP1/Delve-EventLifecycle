@@ -125,7 +125,7 @@ export class ConfigurationService {
             brokers: this.config.KAFKA_BROKERS.split(','),
             clientId: this.config.KAFKA_CLIENT_ID,
             groupId: this.config.KAFKA_GROUP_ID,
-            topicPrefix: this.config.KAFKA_TOPIC,
+            topicName: this.config.KAFKA_TOPIC,
             autoOffsetReset: this.config.KAFKA_AUTO_OFFSET_RESET,
             sessionTimeout: this.config.KAFKA_SESSION_TIMEOUT,
             heartbeatInterval: this.config.KAFKA_HEARTBEAT_INTERVAL,

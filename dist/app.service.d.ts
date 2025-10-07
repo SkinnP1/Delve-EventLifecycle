@@ -11,10 +11,4 @@ export declare class AppService implements OnModuleInit {
     onModuleInit(): Promise<void>;
     private startKafkaConsumer;
     private processKafkaMessage;
-    getHello(): string;
-    getHealth(): object;
-    sendMessage(topic: string, message: any): Promise<{
-        success: boolean;
-        message: string;
-    }>;
 }

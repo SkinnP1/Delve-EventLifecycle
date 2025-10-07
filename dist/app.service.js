@@ -28,7 +28,7 @@ let AppService = AppService_1 = class AppService {
     async startKafkaConsumer() {
         try {
             const kafkaConfig = this.configService.getKafkaConfig();
-            const topic = kafkaConfig.topicPrefix;
+            const topic = kafkaConfig.topicName;
             await this.kafkaConsumer.subscribeToTopic(topic, true);
             await this.kafkaConsumer.startConsuming(async (payload) => {
                 this.logger.log(`Received message from topic ${payload.topic}:`, {
@@ -52,33 +52,6 @@ let AppService = AppService_1 = class AppService {
         }
         catch (error) {
             this.logger.error('Error processing Kafka message:', error);
-        }
-    }
-    getHello() {
-        return 'Welcome to Delve - A simple NestJS application!';
-    }
-    getHealth() {
-        return {
-            status: 'ok',
-            message: 'Delve application is running',
-            timestamp: new Date().toISOString(),
-        };
-    }
-    async sendMessage(topic, message) {
-        try {
-            await this.kafkaProducer.produceKafkaEvent(topic, message);
-            this.logger.log(`Message sent to topic ${topic}:`, message);
-            return {
-                success: true,
-                message: `Message sent to topic ${topic}`
-            };
-        }
-        catch (error) {
-            this.logger.error(`Failed to send message to topic ${topic}:`, error);
-            return {
-                success: false,
-                message: `Failed to send message: ${error.message}`
-            };
         }
     }
 };

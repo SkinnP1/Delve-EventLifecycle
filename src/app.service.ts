@@ -20,7 +20,7 @@ export class AppService implements OnModuleInit {
     private async startKafkaConsumer(): Promise<void> {
         try {
             const kafkaConfig = this.configService.getKafkaConfig();
-            const topic = kafkaConfig.topicPrefix;
+            const topic = kafkaConfig.topicName;
 
             // Subscribe to the configured topic
             await this.kafkaConsumer.subscribeToTopic(topic, true);
@@ -61,32 +61,4 @@ export class AppService implements OnModuleInit {
         }
     }
 
-    getHello(): string {
-        return 'Welcome to Delve - A simple NestJS application!';
-    }
-
-    getHealth(): object {
-        return {
-            status: 'ok',
-            message: 'Delve application is running',
-            timestamp: new Date().toISOString(),
-        };
-    }
-
-    async sendMessage(topic: string, message: any): Promise<{ success: boolean; message: string }> {
-        try {
-            await this.kafkaProducer.produceKafkaEvent(topic, message);
-            this.logger.log(`Message sent to topic ${topic}:`, message);
-            return {
-                success: true,
-                message: `Message sent to topic ${topic}`
-            };
-        } catch (error) {
-            this.logger.error(`Failed to send message to topic ${topic}:`, error);
-            return {
-                success: false,
-                message: `Failed to send message: ${error.message}`
-            };
-        }
-    }
 }

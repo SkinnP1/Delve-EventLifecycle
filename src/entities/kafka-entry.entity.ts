@@ -66,4 +66,7 @@ export class KafkaEntryEntity {
 
     @OneToMany(() => EventLifecycleEntity, obj => obj.kafkaEntry, { cascade: true })
     eventLifecycles: EventLifecycleEntity[];
+
+    @Column({ type: 'json', nullable: true })
+    data: Record<string, any>;
 }
