@@ -15,6 +15,7 @@ const configuration_dto_1 = require("./dtos/configuration.dto");
 const class_transformer_1 = require("class-transformer");
 const class_validator_1 = require("class-validator");
 const kafka_entry_entity_1 = require("../../entities/kafka-entry.entity");
+const event_lifecycle_entity_1 = require("../../entities/event-lifecycle.entity");
 let ConfigurationService = class ConfigurationService {
     constructor() {
         this.config = this.initializeConfiguration();
@@ -181,7 +182,8 @@ let ConfigurationService = class ConfigurationService {
             database: dbConfig.database,
             url: dbConfig.url,
             entities: [
-                kafka_entry_entity_1.KafkaEntry,
+                kafka_entry_entity_1.KafkaEntryEntity,
+                event_lifecycle_entity_1.EventLifecycleEntity,
             ],
             migrations: [__dirname + '/../**/migrations/*{.ts,.js}'],
             synchronize: this.config.NODE_ENV === 'development',
@@ -192,23 +194,6 @@ let ConfigurationService = class ConfigurationService {
                 acquireTimeoutMillis: 60000,
                 timeout: 60000,
             },
-        };
-    }
-    getTypeOrmConfigForMigrations() {
-        const dbConfig = this.getDatabaseConfig();
-        return {
-            type: 'postgres',
-            host: dbConfig.host,
-            port: dbConfig.port,
-            username: dbConfig.username,
-            password: dbConfig.password,
-            database: dbConfig.database,
-            url: dbConfig.url,
-            entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-            migrations: [__dirname + '/../**/migrations/*{.ts,.js}'],
-            migrationsRun: false,
-            synchronize: false,
-            logging: true,
         };
     }
     async validateConfiguration() {

@@ -14,7 +14,8 @@ import { TestRunnerConfigDto } from './dtos/test-runner-config.dto';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { KafkaEntry } from 'src/entities/kafka-entry.entity';
+import { KafkaEntryEntity } from 'src/entities/kafka-entry.entity';
+import { EventLifecycleEntity } from 'src/entities/event-lifecycle.entity';
 
 @Injectable()
 export class ConfigurationService {
@@ -220,7 +221,8 @@ export class ConfigurationService {
             database: dbConfig.database,
             url: dbConfig.url,
             entities: [
-                KafkaEntry,
+                KafkaEntryEntity,
+                EventLifecycleEntity,
             ],
             migrations: [__dirname + '/../**/migrations/*{.ts,.js}'],
             synchronize: this.config.NODE_ENV === 'development',
@@ -231,25 +233,6 @@ export class ConfigurationService {
                 acquireTimeoutMillis: 60000,
                 timeout: 60000,
             },
-        };
-    }
-
-    getTypeOrmConfigForMigrations(): TypeOrmModuleOptions {
-        const dbConfig = this.getDatabaseConfig();
-
-        return {
-            type: 'postgres',
-            host: dbConfig.host,
-            port: dbConfig.port,
-            username: dbConfig.username,
-            password: dbConfig.password,
-            database: dbConfig.database,
-            url: dbConfig.url,
-            entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-            migrations: [__dirname + '/../**/migrations/*{.ts,.js}'],
-            migrationsRun: false,
-            synchronize: false,
-            logging: true,
         };
     }
 

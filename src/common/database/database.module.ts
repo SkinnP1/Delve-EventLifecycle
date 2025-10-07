@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigurationModule } from '../configurations/configuration.module';
 import { ConfigurationService } from '../configurations/configuration.service';
-import { KafkaEntry } from '../../entities/kafka-entry.entity';
+import { KafkaEntryEntity } from '../../entities/kafka-entry.entity';
+import { EventLifecycleEntity } from '../../entities/event-lifecycle.entity';
 
 @Module({
     imports: [
@@ -12,7 +13,7 @@ import { KafkaEntry } from '../../entities/kafka-entry.entity';
                 configService.getTypeOrmConfig(),
             inject: [ConfigurationService],
         }),
-        TypeOrmModule.forFeature([KafkaEntry]),
+        TypeOrmModule.forFeature([KafkaEntryEntity, EventLifecycleEntity]),
     ],
     exports: [TypeOrmModule],
 })

@@ -25,7 +25,6 @@ export declare class ConfigurationService {
     getApiConfig(): ApiConfigDto;
     getLoggingConfig(): LoggingConfigDto;
     getTypeOrmConfig(): TypeOrmModuleOptions;
-    getTypeOrmConfigForMigrations(): TypeOrmModuleOptions;
     validateConfiguration(): Promise<boolean>;
     getAnalyticsConfig(): AnalyticsConfigDto;
     getEmailConfig(): EmailConfigDto;

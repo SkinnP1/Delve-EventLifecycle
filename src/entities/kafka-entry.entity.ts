@@ -1,11 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { KafkaStatusEnum } from './enums/kafka-status.enum';
 import { EventStageEnum } from './enums/event-stage.enum';
 import { EventTypeEnum } from './enums/event-type.enum';
 import { PriorityEnum } from './enums/priority.enum';
+import { EventLifecycleEntity } from './event-lifecycle.entity';
 
 @Entity('kafka_entry')
-export class KafkaEntry {
+export class KafkaEntryEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -62,4 +63,7 @@ export class KafkaEntry {
 
     @Column({ type: 'json', nullable: true })
     error: Record<string, any>;
+
+    @OneToMany(() => EventLifecycleEntity, obj => obj.kafkaEntry, { cascade: true })
+    eventLifecycles: EventLifecycleEntity[];
 }
