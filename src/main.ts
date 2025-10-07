@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigurationService } from './common/configurations/configuration.service';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -21,6 +22,17 @@ async function bootstrap() {
         credentials: true,
     });
 
+    // Setup Swagger documentation
+    const config = new DocumentBuilder()
+        .setTitle('Delve API')
+        .setDescription('A simple NestJS application for Delve')
+        .setVersion('1.0')
+        .addTag('API')
+        .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+
     // Start the application
     await app.listen(appConfig.port);
 
@@ -28,6 +40,7 @@ async function bootstrap() {
     console.log(`📍 Environment: ${appConfig.environment}`);
     console.log(`🌐 Application URL: http://localhost:${appConfig.port}`);
     console.log(`🔗 API URL: http://localhost:${appConfig.port}/${apiConfig.prefix}`);
+    console.log(`📚 Swagger Docs: http://localhost:${appConfig.port}/api/docs`);
     console.log(`📝 Description: ${appConfig.description}`);
 }
 bootstrap();
