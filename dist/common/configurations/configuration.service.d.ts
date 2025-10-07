@@ -6,6 +6,10 @@ import { KafkaProducerConfigDto } from './dtos/kafka-producer-config.dto';
 import { AppConfigDto } from './dtos/app-config.dto';
 import { ApiConfigDto } from './dtos/api-config.dto';
 import { LoggingConfigDto } from './dtos/logging-config.dto';
+import { AnalyticsConfigDto } from './dtos/analytics-config.dto';
+import { EmailConfigDto } from './dtos/email-config.dto';
+import { SmsConfigDto } from './dtos/sms-config.dto';
+import { TestRunnerConfigDto } from './dtos/test-runner-config.dto';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 export declare class ConfigurationService {
     private readonly config;
@@ -23,4 +27,8 @@ export declare class ConfigurationService {
     getTypeOrmConfig(): TypeOrmModuleOptions;
     getTypeOrmConfigForMigrations(): TypeOrmModuleOptions;
     validateConfiguration(): Promise<boolean>;
+    getAnalyticsConfig(): AnalyticsConfigDto;
+    getEmailConfig(): EmailConfigDto;
+    getSmsConfig(): SmsConfigDto;
+    getTestRunnerConfig(): TestRunnerConfigDto;
 }

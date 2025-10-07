@@ -234,4 +234,44 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], ConfigurationDto.prototype, "KAFKA_PRODUCER_COMPRESSION_TYPE", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "ANALYTICS_FAILURE_RATE", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "ANALYTICS_LATENCY", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "EMAIL_FAILURE_RATE", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "EMAIL_LATENCY", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "SMS_FAILURE_RATE", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "SMS_LATENCY", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "TEST_RUNNER_FAILURE_RATE", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "TEST_RUNNER_LATENCY", void 0);
 //# sourceMappingURL=configuration.dto.js.map

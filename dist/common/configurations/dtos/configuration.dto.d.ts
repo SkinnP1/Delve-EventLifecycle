@@ -43,4 +43,12 @@ export declare class ConfigurationDto {
     KAFKA_PRODUCER_LINGER_MS: number;
     KAFKA_PRODUCER_BUFFER_MEMORY: number;
     KAFKA_PRODUCER_COMPRESSION_TYPE: string;
+    ANALYTICS_FAILURE_RATE: number;
+    ANALYTICS_LATENCY: number;
+    EMAIL_FAILURE_RATE: number;
+    EMAIL_LATENCY: number;
+    SMS_FAILURE_RATE: number;
+    SMS_LATENCY: number;
+    TEST_RUNNER_FAILURE_RATE: number;
+    TEST_RUNNER_LATENCY: number;
 }

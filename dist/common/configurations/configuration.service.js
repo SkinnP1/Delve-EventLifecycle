@@ -64,8 +64,15 @@ let ConfigurationService = class ConfigurationService {
             KAFKA_PRODUCER_LINGER_MS: parseInt(process.env.KAFKA_PRODUCER_LINGER_MS || '5'),
             KAFKA_PRODUCER_BUFFER_MEMORY: parseInt(process.env.KAFKA_PRODUCER_BUFFER_MEMORY || '33554432'),
             KAFKA_PRODUCER_COMPRESSION_TYPE: process.env.KAFKA_PRODUCER_COMPRESSION_TYPE || 'none',
+            ANALYTICS_LATENCY: parseInt(process.env.ANALYTICS_LATENCY || '200'),
+            ANALYTICS_FAILURE_RATE: parseFloat(process.env.ANALYTICS_FAILURE_RATE || '0.02'),
+            EMAIL_LATENCY: parseInt(process.env.EMAIL_LATENCY || '1000'),
+            EMAIL_FAILURE_RATE: parseFloat(process.env.EMAIL_FAILURE_RATE || '0.05'),
+            SMS_LATENCY: parseInt(process.env.SMS_LATENCY || '350'),
+            SMS_FAILURE_RATE: parseFloat(process.env.SMS_FAILURE_RATE || '0.03'),
+            TEST_RUNNER_LATENCY: parseInt(process.env.TEST_RUNNER_LATENCY || '2000'),
+            TEST_RUNNER_FAILURE_RATE: parseFloat(process.env.TEST_RUNNER_FAILURE_RATE || '0.1'),
         };
-        console.log(configData);
         return (0, class_transformer_1.plainToClass)(configuration_dto_1.ConfigurationDto, configData);
     }
     getConfiguration() {
@@ -204,6 +211,30 @@ let ConfigurationService = class ConfigurationService {
     async validateConfiguration() {
         const errors = await (0, class_validator_1.validate)(this.config);
         return errors.length === 0;
+    }
+    getAnalyticsConfig() {
+        return {
+            failureRate: this.config.ANALYTICS_FAILURE_RATE,
+            latency: this.config.ANALYTICS_LATENCY,
+        };
+    }
+    getEmailConfig() {
+        return {
+            failureRate: this.config.EMAIL_FAILURE_RATE,
+            latency: this.config.EMAIL_LATENCY,
+        };
+    }
+    getSmsConfig() {
+        return {
+            failureRate: this.config.SMS_FAILURE_RATE,
+            latency: this.config.SMS_LATENCY,
+        };
+    }
+    getTestRunnerConfig() {
+        return {
+            failureRate: this.config.TEST_RUNNER_FAILURE_RATE,
+            latency: this.config.TEST_RUNNER_LATENCY,
+        };
     }
 };
 exports.ConfigurationService = ConfigurationService;

@@ -7,6 +7,10 @@ import { KafkaProducerConfigDto } from './dtos/kafka-producer-config.dto';
 import { AppConfigDto } from './dtos/app-config.dto';
 import { ApiConfigDto } from './dtos/api-config.dto';
 import { LoggingConfigDto } from './dtos/logging-config.dto';
+import { AnalyticsConfigDto } from './dtos/analytics-config.dto';
+import { EmailConfigDto } from './dtos/email-config.dto';
+import { SmsConfigDto } from './dtos/sms-config.dto';
+import { TestRunnerConfigDto } from './dtos/test-runner-config.dto';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
@@ -74,9 +78,18 @@ export class ConfigurationService {
             KAFKA_PRODUCER_LINGER_MS: parseInt(process.env.KAFKA_PRODUCER_LINGER_MS || '5'),
             KAFKA_PRODUCER_BUFFER_MEMORY: parseInt(process.env.KAFKA_PRODUCER_BUFFER_MEMORY || '33554432'),
             KAFKA_PRODUCER_COMPRESSION_TYPE: process.env.KAFKA_PRODUCER_COMPRESSION_TYPE || 'none',
+
+            // Service Configuration
+            ANALYTICS_LATENCY: parseInt(process.env.ANALYTICS_LATENCY || '200'),
+            ANALYTICS_FAILURE_RATE: parseFloat(process.env.ANALYTICS_FAILURE_RATE || '0.02'),
+            EMAIL_LATENCY: parseInt(process.env.EMAIL_LATENCY || '1000'),
+            EMAIL_FAILURE_RATE: parseFloat(process.env.EMAIL_FAILURE_RATE || '0.05'),
+            SMS_LATENCY: parseInt(process.env.SMS_LATENCY || '350'),
+            SMS_FAILURE_RATE: parseFloat(process.env.SMS_FAILURE_RATE || '0.03'),
+            TEST_RUNNER_LATENCY: parseInt(process.env.TEST_RUNNER_LATENCY || '2000'),
+            TEST_RUNNER_FAILURE_RATE: parseFloat(process.env.TEST_RUNNER_FAILURE_RATE || '0.1'),
         };
 
-        console.log(configData);
         return plainToClass(ConfigurationDto, configData);
     }
 
@@ -241,5 +254,35 @@ export class ConfigurationService {
     async validateConfiguration(): Promise<boolean> {
         const errors = await validate(this.config);
         return errors.length === 0;
+    }
+
+    getAnalyticsConfig(): AnalyticsConfigDto {
+        return {
+            failureRate: this.config.ANALYTICS_FAILURE_RATE,
+            latency: this.config.ANALYTICS_LATENCY,
+        };
+    }
+
+
+    getEmailConfig(): EmailConfigDto {
+        return {
+            failureRate: this.config.EMAIL_FAILURE_RATE,
+            latency: this.config.EMAIL_LATENCY,
+        };
+    }
+
+
+    getSmsConfig(): SmsConfigDto {
+        return {
+            failureRate: this.config.SMS_FAILURE_RATE,
+            latency: this.config.SMS_LATENCY,
+        };
+    }
+
+    getTestRunnerConfig(): TestRunnerConfigDto {
+        return {
+            failureRate: this.config.TEST_RUNNER_FAILURE_RATE,
+            latency: this.config.TEST_RUNNER_LATENCY,
+        };
     }
 }

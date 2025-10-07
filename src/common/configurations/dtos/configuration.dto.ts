@@ -183,4 +183,36 @@ export class ConfigurationDto {
     @IsNotEmpty()
     @IsString()
     KAFKA_PRODUCER_COMPRESSION_TYPE: string;
+
+    @IsNotEmpty()
+    @IsNumber()
+    ANALYTICS_FAILURE_RATE: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    ANALYTICS_LATENCY: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    EMAIL_FAILURE_RATE: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    EMAIL_LATENCY: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    SMS_FAILURE_RATE: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    SMS_LATENCY: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    TEST_RUNNER_FAILURE_RATE: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    TEST_RUNNER_LATENCY: number;
 }
