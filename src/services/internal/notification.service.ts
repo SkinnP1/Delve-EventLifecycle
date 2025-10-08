@@ -8,13 +8,6 @@ import { KafkaStatusEnum } from 'src/entities/enums/kafka-status.enum';
 import { KafkaProducerService } from 'src/common/kafka/kafka-producer.service';
 import { KafkaEntryEntity } from 'src/entities/kafka-entry.entity';
 
-export interface NotificationData {
-    recipient: string;
-    subject?: string;
-    message: string;
-    type: 'email' | 'sms';
-    metadata?: Record<string, any>;
-}
 
 @Injectable()
 export class NotificationService {
@@ -78,7 +71,6 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error processing email notification:', error);
-            throw error;
         }
     }
 
@@ -92,17 +84,12 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error validating template:', error);
-            await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.FAIL);
-            if (kafkaEntry.retryCount == 3 && kafkaEntry.status === KafkaStatusEnum.FAILED) {
-                // Retry Limit is exhasuted. Push to DLQ
-            }
-            kafkaMessage.headers.eventStage = EventStageEnum.VALIDATE_TEMPLATE;
-            kafkaMessage.headers.retryAt = kafkaEntry.nextRetryAt;
-            await this.kafkaProducerService.produceKafkaEvent(kafkaEntry.topicName, kafkaMessage, kafkaEntry.priority + kafkaEntry.referenceId);
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+
         }
     }
 
-    // Step 1: Validate template (3 lines)
+    // Step 2: Send Email (3 lines)
     private async sendEmail(kafkaEntry: KafkaEntryEntity, kafkaMessage: KafkaMessageDto): Promise<any> {
         await this.databaseService.updateKafkaEntry(kafkaEntry, EventStageEnum.SEND_EMAIL)
         try {
@@ -111,53 +98,37 @@ export class NotificationService {
             await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.SUCCESS);
 
         } catch (error) {
-            this.logger.error('Error validating template:', error);
-            await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.FAIL);
-            if (kafkaEntry.retryCount == 3 && kafkaEntry.status === KafkaStatusEnum.FAILED) {
-                // Retry Limit is exhasuted. Push to DLQ
-            }
-            kafkaMessage.headers.eventStage = EventStageEnum.SEND_EMAIL;
-            kafkaMessage.headers.retryAt = kafkaEntry.nextRetryAt;
-            await this.kafkaProducerService.produceKafkaEvent(kafkaEntry.topicName, kafkaMessage, kafkaEntry.priority + kafkaEntry.referenceId);
+            this.logger.error('Error sendEmail:', error);
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
         }
     }
 
-    // Step 1: Validate template (3 lines)
+    // Step 3: Render Content (3 lines)
     private async renderContent(kafkaEntry: KafkaEntryEntity, kafkaMessage: KafkaMessageDto): Promise<any> {
         await this.databaseService.updateKafkaEntry(kafkaEntry, EventStageEnum.RENDER_CONTENT)
         try {
             // Add logic to validate template
-            console.log('sendEmail', "success");
+            console.log('renderContent', "success");
             await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.SUCCESS);
 
         } catch (error) {
-            this.logger.error('Error validating template:', error);
-            await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.FAIL);
-            if (kafkaEntry.retryCount == 3 && kafkaEntry.status === KafkaStatusEnum.FAILED) {
-                // Retry Limit is exhasuted. Push to DLQ
-            }
-            kafkaMessage.headers.eventStage = EventStageEnum.RENDER_CONTENT;
-            kafkaMessage.headers.retryAt = kafkaEntry.nextRetryAt;
-            await this.kafkaProducerService.produceKafkaEvent(kafkaEntry.topicName, kafkaMessage, kafkaEntry.priority + kafkaEntry.referenceId);
+            this.logger.error('Error renderContent:', error);
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
         }
     }
 
+    // Step 4: Track Status (3 lines)
     private async trackStatus(kafkaEntry: KafkaEntryEntity, kafkaMessage: KafkaMessageDto): Promise<any> {
         await this.databaseService.updateKafkaEntry(kafkaEntry, EventStageEnum.TRACK_STATUS)
         try {
             // Add logic to validate template
-            console.log('sendEmail', "success");
+            console.log('trackStatus', "success");
             await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.SUCCESS);
 
         } catch (error) {
-            this.logger.error('Error validating template:', error);
-            await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.FAIL);
-            if (kafkaEntry.retryCount == 3 && kafkaEntry.status === KafkaStatusEnum.FAILED) {
-                // Retry Limit is exhasuted. Push to DLQ
-            }
-            kafkaMessage.headers.eventStage = EventStageEnum.TRACK_STATUS;
-            kafkaMessage.headers.retryAt = kafkaEntry.nextRetryAt;
-            await this.kafkaProducerService.produceKafkaEvent(kafkaEntry.topicName, kafkaMessage, kafkaEntry.priority + kafkaEntry.referenceId);
+            this.logger.error('Error trackStatus:', error);
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 

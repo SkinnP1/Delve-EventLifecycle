@@ -10,5 +10,4 @@ export declare class AppService implements OnModuleInit {
     constructor(kafkaConsumer: KafkaConsumerService, kafkaProducer: KafkaProducerService, configService: ConfigurationService);
     onModuleInit(): Promise<void>;
     private startKafkaConsumer;
-    private processKafkaMessage;
 }

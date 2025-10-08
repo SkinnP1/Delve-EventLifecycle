@@ -26,6 +26,10 @@ export class KafkaMessageHeadersDto {
     @IsOptional()
     @IsDateString()
     retryAt?: Date;
+
+    @ApiProperty({ description: 'Name of the topic', example: 'delve', required: true })
+    @IsString()
+    topicName: string;
 }
 
 export class KafkaMessageDto {

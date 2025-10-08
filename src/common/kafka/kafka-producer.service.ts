@@ -1,6 +1,12 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy, Inject } from '@nestjs/common';
 import { Kafka, Producer, ProducerRecord } from 'kafkajs';
 import { ConfigurationService } from '../configurations/configuration.service';
+import { KafkaEntryEntity } from 'src/entities/kafka-entry.entity';
+import { KafkaMessageDto } from 'src/api/dto/kafka-message.dto';
+import { EventStageEnum } from 'src/entities/enums/event-stage.enum';
+import { DatabaseService } from '../database/database.service';
+import { LifecycleStatusEnum } from 'src/entities/enums/lifecycle-status.enum';
+import { KafkaStatusEnum } from 'src/entities/enums/kafka-status.enum';
 
 @Injectable()
 export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
@@ -8,7 +14,9 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     private kafka: Kafka;
     private producer: Producer;
 
-    constructor(private readonly configService: ConfigurationService) { }
+    constructor(private readonly configService: ConfigurationService,
+        private readonly databaseService: DatabaseService
+    ) { }
 
     async onModuleInit() {
         await this.kafkaConnect();
@@ -47,79 +55,99 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
-    async produceKafkaEvent(topic: string, event: any, key?: string): Promise<void> {
+    private async sendRecord(record: ProducerRecord, logMessage: string, errorMessage: string): Promise<void> {
         try {
-            const record: ProducerRecord = {
-                topic,
-                messages: [{
-                    key,
-                    value: JSON.stringify(event),
-                    timestamp: Date.now().toString(),
-                }],
-            };
-
             await this.producer.send(record);
-            this.logger.log(`Kafka event produced to topic ${topic}: ${JSON.stringify(event)}`);
+            this.logger.log(logMessage);
         } catch (error) {
-            this.logger.error(`Failed to produce Kafka event to topic ${topic}:`, error);
+            this.logger.error(errorMessage, error);
             throw error;
         }
+    }
+
+    async produceKafkaEvent(topic: string, event: any, key?: string): Promise<void> {
+        const record: ProducerRecord = {
+            topic,
+            messages: [{
+                key,
+                value: JSON.stringify(event),
+                timestamp: Date.now().toString(),
+            }],
+        };
+
+        await this.sendRecord(
+            record,
+            `Kafka event produced to topic ${topic}: ${JSON.stringify(event)}`,
+            `Failed to produce Kafka event to topic ${topic}:`
+        );
     }
 
     async sendMessage(topic: string, message: any, key?: string): Promise<void> {
-        try {
-            const record: ProducerRecord = {
-                topic,
-                messages: [{
-                    key,
-                    value: JSON.stringify(message),
-                    timestamp: Date.now().toString(),
-                }],
-            };
+        const record: ProducerRecord = {
+            topic,
+            messages: [{
+                key,
+                value: JSON.stringify(message),
+                timestamp: Date.now().toString(),
+            }],
+        };
 
-            await this.producer.send(record);
-            this.logger.log(`Message sent to topic ${topic}: ${JSON.stringify(message)}`);
-        } catch (error) {
-            this.logger.error(`Failed to send message to topic ${topic}:`, error);
-            throw error;
-        }
+        await this.sendRecord(
+            record,
+            `Message sent to topic ${topic}: ${JSON.stringify(message)}`,
+            `Failed to send message to topic ${topic}:`
+        );
     }
 
     async sendBatchMessages(topic: string, messages: Array<{ key?: string; value: any }>): Promise<void> {
-        try {
-            const record: ProducerRecord = {
-                topic,
-                messages: messages.map(msg => ({
-                    key: msg.key,
-                    value: JSON.stringify(msg.value),
-                    timestamp: Date.now().toString(),
-                })),
-            };
+        const record: ProducerRecord = {
+            topic,
+            messages: messages.map(msg => ({
+                key: msg.key,
+                value: JSON.stringify(msg.value),
+                timestamp: Date.now().toString(),
+            })),
+        };
 
-            await this.producer.send(record);
-            this.logger.log(`Batch of ${messages.length} messages sent to topic ${topic}`);
-        } catch (error) {
-            this.logger.error(`Failed to send batch messages to topic ${topic}:`, error);
-            throw error;
-        }
+        await this.sendRecord(
+            record,
+            `Batch of ${messages.length} messages sent to topic ${topic}`,
+            `Failed to send batch messages to topic ${topic}:`
+        );
     }
 
     async sendMessageWithPartition(topic: string, message: any, partition: number, key?: string): Promise<void> {
-        try {
-            const record: ProducerRecord = {
-                topic,
-                messages: [{
-                    key,
-                    value: JSON.stringify(message),
-                    partition,
-                    timestamp: Date.now().toString(),
-                }],
-            };
+        const record: ProducerRecord = {
+            topic,
+            messages: [{
+                key,
+                value: JSON.stringify(message),
+                partition,
+                timestamp: Date.now().toString(),
+            }],
+        };
 
-            await this.producer.send(record);
-            this.logger.log(`Message sent to topic ${topic}, partition ${partition}: ${JSON.stringify(message)}`);
+        await this.sendRecord(
+            record,
+            `Message sent to topic ${topic}, partition ${partition}: ${JSON.stringify(message)}`,
+            `Failed to send message to topic ${topic}, partition ${partition}:`
+        );
+    }
+
+    async retryKafkaMessage(kafkaEntry: KafkaEntryEntity, kafkaMessage: KafkaMessageDto): Promise<void> {
+        try {
+            await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.FAIL);
+            if (kafkaEntry.retryCount === 3 && kafkaEntry.status === KafkaStatusEnum.FAILED) {
+                // Retry limit is exhausted. Push to DLQ
+                this.logger.warn(`Retry limit exhausted for kafka entry ${kafkaEntry.id}. Moving to DLQ.`);
+                return;
+            }
+            kafkaMessage.headers.eventStage = kafkaEntry.eventStage;
+            kafkaMessage.headers.retryAt = kafkaEntry.nextRetryAt;
+            console.log(kafkaEntry, kafkaMessage);
+            await this.produceKafkaEvent(kafkaEntry.topicName, kafkaMessage, kafkaEntry.priority + kafkaEntry.referenceId);
         } catch (error) {
-            this.logger.error(`Failed to send message to topic ${topic}, partition ${partition}:`, error);
+            this.logger.error(`Failed to retry kafka message for entry ${kafkaEntry.id}:`, error);
             throw error;
         }
     }

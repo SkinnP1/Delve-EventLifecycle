@@ -45,11 +45,9 @@ export class DatabaseService {
             kafkaEntry.status = KafkaStatusEnum.PROCESSING;
             kafkaEntry.eventStage = newStage;
             kafkaEntry.retryCount = 0;
-            kafkaEntry.completedStages = kafkaEntry.completedStages
             kafkaEntry.error = null;
             await this.kafkaEntryRepository.save(kafkaEntry);
         }
-
         return kafkaEntry;
     }
 
@@ -84,9 +82,15 @@ export class DatabaseService {
             kafkaEntry.nextRetryAt = new Date(Date.now() + Math.min(300, 1 * Math.pow(2, kafkaEntry.retryCount)));
             kafkaEntry.status = KafkaStatusEnum.FAILED;
             kafkaEntry.retryCount += 1;
-            kafkaEntry.error = [`{kafkaEntry.eventStage}:{status}`];
-            await this.kafkaEntryRepository.save(kafkaEntry);
+            kafkaEntry.error = [`${kafkaEntry.eventStage}:${status}`];
         }
+        else {
+            kafkaEntry.completedStages = {
+                ...kafkaEntry.completedStages,
+                [kafkaEntry.eventStage]: KafkaStatusEnum.COMPLETED
+            }
+        }
+        await this.kafkaEntryRepository.save(kafkaEntry);
         return kafkaEntry;
 
     }

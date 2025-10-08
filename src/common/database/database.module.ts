@@ -4,6 +4,7 @@ import { ConfigurationModule } from '../configurations/configuration.module';
 import { ConfigurationService } from '../configurations/configuration.service';
 import { KafkaEntryEntity } from '../../entities/kafka-entry.entity';
 import { EventLifecycleEntity } from '../../entities/event-lifecycle.entity';
+import { DatabaseService } from './database.service';
 
 @Module({
     imports: [
@@ -15,6 +16,7 @@ import { EventLifecycleEntity } from '../../entities/event-lifecycle.entity';
         }),
         TypeOrmModule.forFeature([KafkaEntryEntity, EventLifecycleEntity]),
     ],
-    exports: [TypeOrmModule],
+    providers: [DatabaseService],
+    exports: [DatabaseService],
 })
 export class DatabaseModule { }

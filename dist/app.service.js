@@ -37,21 +37,12 @@ let AppService = AppService_1 = class AppService {
                     key: payload.message.key?.toString(),
                     value: payload.message.value?.toString(),
                 });
-                await this.processKafkaMessage(payload);
+                await this.kafkaConsumer.processMessage(payload);
             });
             this.logger.log(`Kafka consumer started and listening to topic: ${topic}`);
         }
         catch (error) {
             this.logger.error('Failed to start Kafka consumer:', error);
-        }
-    }
-    async processKafkaMessage(payload) {
-        try {
-            const message = JSON.parse(payload.message.value.toString());
-            this.logger.log('Processing Kafka message:', message);
-        }
-        catch (error) {
-            this.logger.error('Error processing Kafka message:', error);
         }
     }
 };

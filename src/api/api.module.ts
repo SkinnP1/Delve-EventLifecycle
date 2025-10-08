@@ -3,14 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApiController } from './api.controller';
 import { ApiService } from './api.service';
 import { KafkaEntryEntity } from 'src/entities/kafka-entry.entity';
-import { KafkaProducerService } from 'src/common/kafka/kafka-producer.service';
+import { KafkaModule } from 'src/common/kafka/kafka.module';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([KafkaEntryEntity])
+        TypeOrmModule.forFeature([KafkaEntryEntity]),
+        KafkaModule
     ],
     controllers: [ApiController],
-    providers: [ApiService, KafkaProducerService],
+    providers: [ApiService],
     exports: [ApiService]
 })
 export class ApiModule { }

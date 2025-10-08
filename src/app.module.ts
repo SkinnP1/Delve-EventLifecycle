@@ -4,15 +4,11 @@ import { ConfigurationModule } from './common/configurations/configuration.modul
 import { KafkaModule } from './common/kafka/kafka.module';
 import { DatabaseModule } from './common/database/database.module';
 import { ApiModule } from './api/api.module';
-import { EmailService } from './services/external/email.service';
-import { SmsService } from './services/external/sms.service';
-import { TestRunnerService } from './services/external/test-runner.service';
-import { AnalyticsService } from './services/external/analytics.service';
-import { NotificationService } from './services/internal/notification.service';
+import { ServicesModule } from './services/services.module';
 
 @Module({
-    imports: [ConfigurationModule, DatabaseModule, KafkaModule, ApiModule],
+    imports: [ConfigurationModule, DatabaseModule, KafkaModule, ApiModule, ServicesModule],
     controllers: [],
-    providers: [AppService, EmailService, SmsService, TestRunnerService, AnalyticsService, NotificationService],
+    providers: [AppService],
 })
 export class AppModule { }

@@ -9,6 +9,7 @@ import { KafkaStatusEnum } from 'src/entities/enums/kafka-status.enum';
 import { KafkaEntryEntity } from 'src/entities/kafka-entry.entity';
 import { KafkaProducerService } from 'src/common/kafka/kafka-producer.service';
 import { ConfigurationService } from 'src/common/configurations/configuration.service';
+import { KafkaMessageDto } from './dto/kafka-message.dto';
 
 @Injectable()
 export class ApiService {
@@ -41,7 +42,7 @@ export class ApiService {
             await this.kafkaEntryRepository.save(kafkaEntry);
 
             // 2. Send message to Kafka
-            const kafkaMessage = {
+            const kafkaMessage: KafkaMessageDto = {
                 headers: {
                     priority: webhookRequest.priority,
                     referenceId: kafkaEntry.referenceId,

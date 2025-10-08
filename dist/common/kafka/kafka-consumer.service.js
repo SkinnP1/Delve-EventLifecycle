@@ -14,9 +14,14 @@ exports.KafkaConsumerService = void 0;
 const common_1 = require("@nestjs/common");
 const kafkajs_1 = require("kafkajs");
 const configuration_service_1 = require("../configurations/configuration.service");
+const kafka_producer_service_1 = require("./kafka-producer.service");
+const event_service_mapping_constants_1 = require("../constants/event-service-mapping.constants");
+const notification_service_1 = require("../../services/internal/notification.service");
 let KafkaConsumerService = KafkaConsumerService_1 = class KafkaConsumerService {
-    constructor(configService) {
+    constructor(configService, kafkaProducer, notificationService) {
         this.configService = configService;
+        this.kafkaProducer = kafkaProducer;
+        this.notificationService = notificationService;
         this.logger = new common_1.Logger(KafkaConsumerService_1.name);
     }
     async onModuleInit() {
@@ -86,64 +91,45 @@ let KafkaConsumerService = KafkaConsumerService_1 = class KafkaConsumerService {
             throw error;
         }
     }
-    async pauseConsuming(topics) {
+    async processMessage(payload) {
         try {
-            this.consumer.pause(topics);
-            this.logger.log('Paused message consumption');
+            const message = JSON.parse(payload.message.value.toString());
+            if (message.headers?.retryAt) {
+                const currentTime = new Date();
+                const retryAt = new Date(message.headers.retryAt);
+                if (currentTime < retryAt) {
+                    await this.kafkaProducer.produceKafkaEvent(message.headers.topicName, message, message.headers.priority + message.headers.referenceId);
+                    return;
+                }
+            }
+            const eventType = message.headers.eventType;
+            const serviceName = event_service_mapping_constants_1.EVENT_SERVICE_MAPPING[eventType];
+            switch (serviceName) {
+                case event_service_mapping_constants_1.ServiceNameEnum.USER_SERVICE:
+                    this.logger.log(`Processing USER_CREATED event: ${JSON.stringify(message)}`);
+                    break;
+                case event_service_mapping_constants_1.ServiceNameEnum.TEST_SERVICE:
+                    this.logger.log(`Processing TEST_RUN event: ${JSON.stringify(message)}`);
+                    break;
+                case event_service_mapping_constants_1.ServiceNameEnum.NOTIFICATION_SERVICE:
+                    this.logger.log(`Processing notification event: ${JSON.stringify(message)}`);
+                    await this.notificationService.processNotificationMessage(message);
+                    break;
+                default:
+                    this.logger.warn(`No handler for service: ${serviceName}`);
+                    break;
+            }
         }
         catch (error) {
-            this.logger.error('Failed to pause message consumption:', error);
-            throw error;
-        }
-    }
-    async resumeConsuming(topics) {
-        try {
-            this.consumer.resume(topics);
-            this.logger.log('Resumed message consumption');
-        }
-        catch (error) {
-            this.logger.error('Failed to resume message consumption:', error);
-            throw error;
-        }
-    }
-    async stopConsuming() {
-        try {
-            await this.consumer.stop();
-            this.logger.log('Stopped message consumption');
-        }
-        catch (error) {
-            this.logger.error('Failed to stop message consumption:', error);
-            throw error;
-        }
-    }
-    async commitOffsets(topicPartitions) {
-        try {
-            await this.consumer.commitOffsets(topicPartitions);
-            this.logger.debug('Committed consumer offsets');
-        }
-        catch (error) {
-            this.logger.error('Failed to commit offsets:', error);
-            throw error;
-        }
-    }
-    async seekToOffset(topic, partition, offset) {
-        try {
-            await this.consumer.seek({
-                topic,
-                partition,
-                offset,
-            });
-            this.logger.log(`Seeked to offset ${offset} for topic ${topic}, partition ${partition}`);
-        }
-        catch (error) {
-            this.logger.error(`Failed to seek to offset ${offset} for topic ${topic}, partition ${partition}:`, error);
-            throw error;
+            this.logger.error(`Error processing message from topic ${payload.topic}:`, error);
         }
     }
 };
 exports.KafkaConsumerService = KafkaConsumerService;
 exports.KafkaConsumerService = KafkaConsumerService = KafkaConsumerService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [configuration_service_1.ConfigurationService])
+    __metadata("design:paramtypes", [configuration_service_1.ConfigurationService,
+        kafka_producer_service_1.KafkaProducerService,
+        notification_service_1.NotificationService])
 ], KafkaConsumerService);
 //# sourceMappingURL=kafka-consumer.service.js.map

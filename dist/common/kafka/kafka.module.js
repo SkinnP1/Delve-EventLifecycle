@@ -11,14 +11,16 @@ const common_1 = require("@nestjs/common");
 const configuration_module_1 = require("../configurations/configuration.module");
 const kafka_producer_service_1 = require("./kafka-producer.service");
 const kafka_consumer_service_1 = require("./kafka-consumer.service");
+const database_module_1 = require("../database/database.module");
+const notification_service_1 = require("../../services/internal/notification.service");
 let KafkaModule = class KafkaModule {
 };
 exports.KafkaModule = KafkaModule;
 exports.KafkaModule = KafkaModule = __decorate([
     (0, common_1.Module)({
-        imports: [configuration_module_1.ConfigurationModule],
-        providers: [kafka_producer_service_1.KafkaProducerService, kafka_consumer_service_1.KafkaConsumerService],
-        exports: [kafka_producer_service_1.KafkaProducerService, kafka_consumer_service_1.KafkaConsumerService],
+        imports: [configuration_module_1.ConfigurationModule, database_module_1.DatabaseModule],
+        providers: [kafka_producer_service_1.KafkaProducerService, kafka_consumer_service_1.KafkaConsumerService, notification_service_1.NotificationService],
+        exports: [kafka_producer_service_1.KafkaProducerService, kafka_consumer_service_1.KafkaConsumerService, notification_service_1.NotificationService],
     })
 ], KafkaModule);
 //# sourceMappingURL=kafka.module.js.map

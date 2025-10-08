@@ -93,13 +93,13 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
 
     async processMessage(payload: EachMessagePayload): Promise<void> {
         try {
-            const message = JSON.parse(payload.message.value.toString());
+            const message: KafkaMessageDto = JSON.parse(payload.message.value.toString());
             if (message.headers?.retryAt) {
                 const currentTime = new Date();
                 const retryAt = new Date(message.headers.retryAt);
-                if (currentTime > retryAt) {
+                if (currentTime < retryAt) {
                     // Push the event back to topic
-                    await this.kafkaProducer.produceKafkaEvent(message.headers.topic, payload, message.headers.priority + message.headers.referenceId);
+                    await this.kafkaProducer.produceKafkaEvent(message.headers.topicName, message, message.headers.priority + message.headers.referenceId);
                     return;
                 }
             }
@@ -125,7 +125,6 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
             }
         } catch (error) {
             this.logger.error(`Error processing message from topic ${payload.topic}:`, error);
-            throw error;
         }
     }
 }
