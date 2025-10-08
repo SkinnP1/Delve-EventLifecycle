@@ -162,6 +162,7 @@ export class UserService {
         } catch (error) {
             this.logger.error('Error validating data:', error);
             await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 
@@ -177,6 +178,7 @@ export class UserService {
         } catch (error) {
             this.logger.error('Error sending welcome email:', error);
             await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 
@@ -185,12 +187,16 @@ export class UserService {
         await this.databaseService.updateKafkaEntry(kafkaEntry, EventStageEnum.CREATE_PROFILE)
         try {
             // Add logic to create user profile
+            if (kafkaEntry.retryCount < 2) {
+                throw new Error('Simulated transient error during profile creation');
+            }
             console.log('createProfile', "success");
             await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.SUCCESS);
 
         } catch (error) {
             this.logger.error('Error creating profile:', error);
             await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 
@@ -221,6 +227,7 @@ export class UserService {
         } catch (error) {
             this.logger.error('Error validating payload:', error);
             await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 
@@ -236,6 +243,7 @@ export class UserService {
         } catch (error) {
             this.logger.error('Error syncing analytics:', error);
             await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 
@@ -250,6 +258,7 @@ export class UserService {
         } catch (error) {
             this.logger.error('Error updating search index:', error);
             await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 
@@ -279,6 +288,7 @@ export class UserService {
         } catch (error) {
             this.logger.error('Error soft deleting user:', error);
             await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 
@@ -293,6 +303,7 @@ export class UserService {
         } catch (error) {
             this.logger.error('Error queueing data export:', error);
             await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 
@@ -307,6 +318,7 @@ export class UserService {
         } catch (error) {
             this.logger.error('Error removing from indices:', error);
             await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            throw error;
         }
     }
 

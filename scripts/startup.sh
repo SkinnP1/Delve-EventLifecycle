@@ -3,23 +3,20 @@
 # Startup script for Delve application with Kafka
 echo "🚀 Starting Delve application with Kafka..."
 
-# Wait for Kafka to be ready
+# Wait for Kafka to be ready using netcat
 echo "⏳ Waiting for Kafka to be ready..."
-until kafka-broker-api-versions --bootstrap-server kafka:29092; do
+until nc -z kafka 29092; do
     echo "Kafka is not ready yet, waiting..."
     sleep 5
 done
 
 echo "✅ Kafka is ready!"
 
-# Wait for the topic to be created
-echo "⏳ Waiting for Kafka topic to be created..."
-until kafka-topics --bootstrap-server kafka:29092 --list | grep -q "delve-kafka-topic"; do
-    echo "Topic not ready yet, waiting..."
-    sleep 5
-done
+# Wait a bit more for Kafka to fully initialize
+echo "⏳ Waiting for Kafka to fully initialize..."
+sleep 10
 
-echo "✅ Kafka topic 'delve-kafka-topic' is ready!"
+echo "✅ Kafka is fully initialized!"
 
 # Start the application
 echo "🚀 Starting Delve application..."

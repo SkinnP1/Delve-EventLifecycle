@@ -15,6 +15,16 @@ export class CompletedStageDto {
     status: string;
 }
 
+export class CompletedStagesDto {
+    @ApiProperty({
+        description: 'Completed stages in key-value format',
+        example: { "VALIDATE_TEMPLATE": "COMPLETED", "RENDER_CONTENT": "COMPLETED", "SEND_EMAIL": "COMPLETED" },
+        type: 'object',
+        additionalProperties: { type: 'string' }
+    })
+    stages: Record<string, string>;
+}
+
 export class ErrorDto {
     @ApiProperty({ description: 'Stage where error occurred', example: 'Send email' })
     stage: string;

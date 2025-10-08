@@ -1,8 +1,8 @@
 # Use Node.js 18 Alpine as base image
 FROM node:18-alpine
 
-# Install kafka tools and wget for health checks
-RUN apk add --no-cache kafka kafka-tools wget
+# Install wget, bash, and netcat for health checks
+RUN apk add --no-cache wget bash netcat-openbsd
 
 # Set working directory
 WORKDIR /app
@@ -10,8 +10,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY . .

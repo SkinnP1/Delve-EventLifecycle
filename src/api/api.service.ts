@@ -1,15 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { WebhookRequestDto, WebhookResponseDto } from './dto/webhook.dto';
-import { EventStatusResponseDto, EventStatus, CompletedStageDto, ErrorDto } from './dto/event.dto';
+import { EventStatusResponseDto, EventStatus, CompletedStageDto, CompletedStagesDto, ErrorDto } from './dto/event.dto';
 import { HealthResponseDto, HealthStatus, QueueStatsDto, WorkerStatsDto, CircuitBreakerDto } from './dto/health.dto';
 import { KafkaStatusEnum } from 'src/entities/enums/kafka-status.enum';
 import { KafkaEntryEntity } from 'src/entities/kafka-entry.entity';
 import { KafkaProducerService } from 'src/common/kafka/kafka-producer.service';
 import { ConfigurationService } from 'src/common/configurations/configuration.service';
 import { KafkaMessageDto } from './dto/kafka-message.dto';
+import { DatabaseService } from 'src/common/database/database.service';
 
 @Injectable()
 export class ApiService {
@@ -19,7 +20,8 @@ export class ApiService {
         @InjectRepository(KafkaEntryEntity)
         private readonly kafkaEntryRepository: Repository<KafkaEntryEntity>,
         private readonly kafkaProducerService: KafkaProducerService,
-        private readonly configurationService: ConfigurationService
+        private readonly configurationService: ConfigurationService,
+        private readonly databaseService: DatabaseService
     ) {
         this.kafkaTopic = this.configurationService.getKafkaConfig().topicName;
     }
@@ -72,9 +74,76 @@ export class ApiService {
         }
     }
 
+    // Utility method to convert completed stages format
+    private convertCompletedStages(completedStages: Record<string, string> | null): CompletedStageDto[] {
+        if (!completedStages) {
+            return [];
+        }
+
+        return Object.entries(completedStages).map(([stage, status]) => ({
+            stage,
+            status
+        }));
+    }
+
+    // Utility method to convert error format
+    private convertErrors(errors: any): ErrorDto[] {
+        if (!errors) {
+            return [];
+        }
+
+        // Handle array of error strings like ["TRACK_STATUS:FAIL"]
+        if (Array.isArray(errors)) {
+            return errors.map(errorString => {
+                if (typeof errorString === 'string') {
+                    // Split by colon to separate stage and error message
+                    const [stage, error] = errorString.split(':');
+                    return {
+                        stage: stage || 'Unknown',
+                        error: error || 'Unknown error'
+                    };
+                }
+                return {
+                    stage: 'Unknown',
+                    error: 'Invalid error format'
+                };
+            });
+        }
+
+        // Handle single error string
+        if (typeof errors === 'string') {
+            const [stage, error] = errors.split(':');
+            return [{
+                stage: stage || 'Unknown',
+                error: error || 'Unknown error'
+            }];
+        }
+
+        return [];
+    }
+
     // Event status tracking
     async getEventStatus(eventId: string): Promise<EventStatusResponseDto | null> {
-        return this.events.get(eventId) || null;
+        try {
+            const kafkaEntry = await this.databaseService.getKafkaEntryByReferenceId(eventId);
+
+            if (!kafkaEntry) {
+                return null;
+            }
+
+            const response: EventStatusResponseDto = {
+                event_id: kafkaEntry.eventId,
+                status: kafkaEntry.status as unknown as EventStatus,
+                attempts: kafkaEntry.retryCount,
+                completed_stages: this.convertCompletedStages(kafkaEntry.completedStages),
+                errors: this.convertErrors(kafkaEntry.error)
+            };
+
+            return response;
+        } catch (error) {
+            console.error(`Failed to get event status for event ${eventId}:`, error);
+            throw error;
+        }
     }
 
     // System health monitoring
