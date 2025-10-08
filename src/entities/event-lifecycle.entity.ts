@@ -11,7 +11,14 @@ export class EventLifecycleEntity {
     @ManyToOne(() => KafkaEntryEntity, (object) => object.eventLifecycles)
     kafkaEntry: KafkaEntryEntity;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+        transformer: {
+            to: (value: Date) => value,
+            from: (value: string) => new Date(value)
+        }
+    })
     createdAt: Date;
 
     @Column({

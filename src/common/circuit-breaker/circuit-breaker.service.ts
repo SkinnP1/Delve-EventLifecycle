@@ -106,6 +106,17 @@ export class CircuitBreakerService {
     }
 
     /**
+     * Get all circuit breaker states
+     */
+    getAllCircuitBreakerStates(): Record<string, string> {
+        const states: Record<string, string> = {};
+        for (const [serviceName, circuitBreaker] of this.circuitBreakers) {
+            states[serviceName] = circuitBreaker.state.toLowerCase();
+        }
+        return states;
+    }
+
+    /**
      * Get all circuit breaker statistics
      */
     getAllStats(): Map<string, CircuitBreakerStats> {

@@ -167,6 +167,28 @@ let KafkaConsumerService = KafkaConsumerService_1 = class KafkaConsumerService {
             this.logger.error(`Error processing message from topic ${payload.topic}:`, error);
         }
     }
+    getAdminClient() {
+        return this.kafka?.admin();
+    }
+    async getActiveConsumerCount() {
+        try {
+            const admin = this.getAdminClient();
+            if (!admin) {
+                return 1;
+            }
+            const kafkaConfig = this.configService.getKafkaConfig();
+            const groupInfo = await admin.describeGroups([kafkaConfig.groupId]);
+            const group = groupInfo.groups[0];
+            if (group && group.members) {
+                return group.members.length;
+            }
+            return 1;
+        }
+        catch (error) {
+            this.logger.error('Failed to get active consumer count:', error);
+            return 1;
+        }
+    }
 };
 exports.KafkaConsumerService = KafkaConsumerService;
 exports.KafkaConsumerService = KafkaConsumerService = KafkaConsumerService_1 = __decorate([

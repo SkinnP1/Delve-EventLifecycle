@@ -61,7 +61,10 @@ export class DatabaseService {
 
     async getKafkaEntryByReferenceId(referenceId: string): Promise<KafkaEntryEntity> {
         return await this.kafkaEntryRepository.findOne({
-            where: { referenceId: referenceId }
+            where: { referenceId: referenceId },
+            relations: {
+                child: true
+            }
         });
     }
 

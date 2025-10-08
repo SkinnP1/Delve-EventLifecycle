@@ -1,11 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { KafkaStatusEnum } from 'src/entities/enums/kafka-status.enum';
 
-export enum EventStatus {
-    COMPLETED = 'completed',
-    PROCESSING = 'processing',
-    FAILED = 'failed',
-    DEAD_LETTER = 'dead_letter'
-}
 
 export class CompletedStageDto {
     @ApiProperty({ description: 'Stage name', example: 'Validate' })
@@ -37,8 +32,8 @@ export class EventStatusResponseDto {
     @ApiProperty({ description: 'Event identifier', example: 'evt_123' })
     event_id: string;
 
-    @ApiProperty({ description: 'Current processing status', enum: EventStatus, example: 'completed' })
-    status: EventStatus;
+    @ApiProperty({ description: 'Current processing status', enum: KafkaStatusEnum, example: 'completed' })
+    status: KafkaStatusEnum;
 
     @ApiProperty({ description: 'Number of processing attempts', example: 2 })
     attempts: number;

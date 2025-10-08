@@ -29,10 +29,24 @@ export class KafkaEntryEntity {
     @Column({ type: 'varchar', length: 255 })
     topicName: string;
 
-    @CreateDateColumn()
+    @CreateDateColumn({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+        transformer: {
+            to: (value: Date) => value,
+            from: (value: string) => new Date(value)
+        }
+    })
     createdAt: Date;
 
-    @Column({ type: 'timestamp', nullable: true })
+    @Column({
+        type: 'timestamp',
+        nullable: true,
+        transformer: {
+            to: (value: Date) => value,
+            from: (value: string) => new Date(value)
+        }
+    })
     nextRetryAt: Date;
 
     @Column({
@@ -58,7 +72,14 @@ export class KafkaEntryEntity {
     })
     priority: PriorityEnum;
 
-    @UpdateDateColumn()
+    @UpdateDateColumn({
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP',
+        transformer: {
+            to: (value: Date) => value,
+            from: (value: string) => new Date(value)
+        }
+    })
     updatedDate: Date;
 
     @Column({ type: 'json', nullable: true })

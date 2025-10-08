@@ -197,4 +197,36 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
             this.logger.error(`Error processing message from topic ${payload.topic}:`, error);
         }
     }
+
+    /**
+     * Get the Kafka admin client for administrative operations
+     */
+    getAdminClient() {
+        return this.kafka?.admin();
+    }
+
+    /**
+     * Get the number of active consumers in the consumer group
+     */
+    async getActiveConsumerCount(): Promise<number> {
+        try {
+            const admin = this.getAdminClient();
+            if (!admin) {
+                return 1; // Fallback if admin not available
+            }
+
+            const kafkaConfig = this.configService.getKafkaConfig();
+            const groupInfo = await admin.describeGroups([kafkaConfig.groupId]);
+            const group = groupInfo.groups[0];
+
+            if (group && group.members) {
+                return group.members.length;
+            }
+
+            return 1; // Fallback if no group info
+        } catch (error) {
+            this.logger.error('Failed to get active consumer count:', error);
+            return 1; // Fallback on error
+        }
+    }
 }

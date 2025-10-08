@@ -23,4 +23,6 @@ export declare class KafkaConsumerService implements OnModuleInit, OnModuleDestr
     startConsuming(messageHandler: (payload: EachMessagePayload) => Promise<void>): Promise<void>;
     addTopicSubscription(topic: string, fromBeginning?: boolean): Promise<void>;
     processMessage(payload: EachMessagePayload): Promise<void>;
+    getAdminClient(): import("kafkajs").Admin;
+    getActiveConsumerCount(): Promise<number>;
 }
