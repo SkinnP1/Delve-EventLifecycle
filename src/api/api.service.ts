@@ -92,16 +92,26 @@ export class ApiService {
             return [];
         }
 
-        // Handle array of error strings like ["TRACK_STATUS:FAIL"]
+        // Handle object format like {"stage": "error"}
+        if (typeof errors === 'object' && !Array.isArray(errors)) {
+            return Object.entries(errors).map(([stage, error]) => ({
+                stage: stage || 'Unknown',
+                error: String(error) || 'Unknown error'
+            }));
+        }
+
+        // Handle array of error objects
         if (Array.isArray(errors)) {
-            return errors.map(errorString => {
-                if (typeof errorString === 'string') {
-                    // Split by colon to separate stage and error message
-                    const [stage, error] = errorString.split(':');
-                    return {
-                        stage: stage || 'Unknown',
-                        error: error || 'Unknown error'
-                    };
+            return errors.map(errorItem => {
+                if (typeof errorItem === 'object' && errorItem !== null) {
+                    const entries = Object.entries(errorItem);
+                    if (entries.length > 0) {
+                        const [stage, error] = entries[0];
+                        return {
+                            stage: stage || 'Unknown',
+                            error: String(error) || 'Unknown error'
+                        };
+                    }
                 }
                 return {
                     stage: 'Unknown',
@@ -110,7 +120,7 @@ export class ApiService {
             });
         }
 
-        // Handle single error string
+        // Handle single error string (fallback)
         if (typeof errors === 'string') {
             const [stage, error] = errors.split(':');
             return [{

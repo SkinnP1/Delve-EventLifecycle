@@ -21,5 +21,5 @@ export declare class KafkaProducerService implements OnModuleInit, OnModuleDestr
         value: any;
     }>): Promise<void>;
     sendMessageWithPartition(topic: string, message: any, partition: number, key?: string): Promise<void>;
-    retryKafkaMessage(kafkaEntry: KafkaEntryEntity, kafkaMessage: KafkaMessageDto): Promise<void>;
+    retryKafkaMessage(kafkaEntry: KafkaEntryEntity, kafkaMessage: KafkaMessageDto, errorMessage?: string): Promise<void>;
 }

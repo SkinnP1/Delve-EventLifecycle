@@ -109,9 +109,9 @@ let KafkaProducerService = KafkaProducerService_1 = class KafkaProducerService {
         };
         await this.sendRecord(record, `Message sent to topic ${topic}, partition ${partition}: ${JSON.stringify(message)}`, `Failed to send message to topic ${topic}, partition ${partition}:`);
     }
-    async retryKafkaMessage(kafkaEntry, kafkaMessage) {
+    async retryKafkaMessage(kafkaEntry, kafkaMessage, errorMessage) {
         try {
-            await this.databaseService.updateEventLifecycle(kafkaEntry, lifecycle_status_enum_1.LifecycleStatusEnum.FAIL);
+            await this.databaseService.updateEventLifecycle(kafkaEntry, lifecycle_status_enum_1.LifecycleStatusEnum.FAIL, errorMessage);
             if (kafkaEntry.retryCount === 3 && kafkaEntry.status === kafka_status_enum_1.KafkaStatusEnum.FAILED) {
                 this.logger.warn(`Retry limit exhausted for kafka entry ${kafkaEntry.id}. Moving to DLQ.`);
                 return;

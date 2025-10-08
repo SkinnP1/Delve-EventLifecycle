@@ -116,7 +116,7 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error validating template:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
 
         }
@@ -133,7 +133,7 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error sendEmail:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -148,7 +148,7 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error renderContent:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -164,7 +164,7 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error trackStatus:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -180,7 +180,7 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error validating phone number:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
 
         }
@@ -196,7 +196,7 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error checkRateLimit:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -213,7 +213,7 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error sendSms:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -229,7 +229,7 @@ export class NotificationService {
 
         } catch (error) {
             this.logger.error('Error logDelivery:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }

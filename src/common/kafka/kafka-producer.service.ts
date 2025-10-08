@@ -134,9 +134,9 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
         );
     }
 
-    async retryKafkaMessage(kafkaEntry: KafkaEntryEntity, kafkaMessage: KafkaMessageDto): Promise<void> {
+    async retryKafkaMessage(kafkaEntry: KafkaEntryEntity, kafkaMessage: KafkaMessageDto, errorMessage?: string): Promise<void> {
         try {
-            await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.FAIL);
+            await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.FAIL, errorMessage);
             if (kafkaEntry.retryCount === 3 && kafkaEntry.status === KafkaStatusEnum.FAILED) {
                 // Retry limit is exhausted. Push to DLQ
                 this.logger.warn(`Retry limit exhausted for kafka entry ${kafkaEntry.id}. Moving to DLQ.`);

@@ -124,7 +124,7 @@ export class TestService {
 
         } catch (error) {
             this.logger.error('Error parsing config:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -140,7 +140,7 @@ export class TestService {
 
         } catch (error) {
             this.logger.error('Error executing tests:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -155,7 +155,7 @@ export class TestService {
 
         } catch (error) {
             this.logger.error('Error generating report:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -170,7 +170,7 @@ export class TestService {
 
         } catch (error) {
             this.logger.error('Error storing results:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -185,7 +185,7 @@ export class TestService {
 
         } catch (error) {
             this.logger.error('Error analyzing failure:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -200,7 +200,7 @@ export class TestService {
 
         } catch (error) {
             this.logger.error('Error retrying tests:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -216,7 +216,7 @@ export class TestService {
 
         } catch (error) {
             this.logger.error('Error notifying developers:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }
@@ -231,7 +231,7 @@ export class TestService {
 
         } catch (error) {
             this.logger.error('Error creating ticket:', error);
-            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage)
+            await this.kafkaProducerService.retryKafkaMessage(kafkaEntry, kafkaMessage, error.message)
             throw error;
         }
     }

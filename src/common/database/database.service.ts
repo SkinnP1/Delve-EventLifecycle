@@ -70,19 +70,20 @@ export class DatabaseService {
         return kafkaEntry;
     }
 
-    async updateEventLifecycle(kafkaEntry: KafkaEntryEntity, status: LifecycleStatusEnum): Promise<KafkaEntryEntity> {
+    async updateEventLifecycle(kafkaEntry: KafkaEntryEntity, status: LifecycleStatusEnum, errorMessage?: string): Promise<KafkaEntryEntity> {
         // Verify that the kafka entry exists
         const eventLifecycle = this.eventLifecycleRepository.create({
             status: status,
             kafkaEntry: kafkaEntry,
             eventStage: kafkaEntry.eventStage,
+            errorMessage: errorMessage
         });
         await this.eventLifecycleRepository.save(eventLifecycle);
         if (status === LifecycleStatusEnum.FAIL) {
             kafkaEntry.nextRetryAt = new Date(Date.now() + Math.min(300, 1 * Math.pow(2, kafkaEntry.retryCount)));
             kafkaEntry.status = KafkaStatusEnum.FAILED;
             kafkaEntry.retryCount += 1;
-            kafkaEntry.error = [`${kafkaEntry.eventStage}:${status}`];
+            kafkaEntry.error = { [`${kafkaEntry.eventStage}`]: `${errorMessage}` };
         }
         else {
             kafkaEntry.completedStages = {

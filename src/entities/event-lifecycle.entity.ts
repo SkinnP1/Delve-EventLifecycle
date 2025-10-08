@@ -26,4 +26,10 @@ export class EventLifecycleEntity {
         nullable: true
     })
     eventStage?: EventStageEnum;
+
+    @Column({
+        type: 'varchar',
+        nullable: true
+    })
+    errorMessage?: string;
 }
