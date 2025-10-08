@@ -15,6 +15,9 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     private producer: Producer;
     private kafkaTopic: string;
     private dlqKafkaTopic: string;
+    private isShuttingDown = false;
+    private activeOperations = new Set<string>();
+    private shutdownPromise: Promise<void> | null = null;
 
     constructor(private readonly configService: ConfigurationService,
         private readonly databaseService: DatabaseService
@@ -54,19 +57,73 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     }
 
     async onModuleDestroy() {
-        if (this.producer) {
-            await this.producer.disconnect();
-            this.logger.log('Kafka producer disconnected');
+        await this.gracefulShutdown();
+    }
+
+    async gracefulShutdown(): Promise<void> {
+        if (this.shutdownPromise) {
+            return this.shutdownPromise;
+        }
+
+        this.shutdownPromise = this.performGracefulShutdown();
+        return this.shutdownPromise;
+    }
+
+    private async performGracefulShutdown(): Promise<void> {
+        this.logger.log('Starting graceful shutdown of Kafka producer...');
+        this.isShuttingDown = true;
+
+        try {
+            // Wait for active operations to complete
+            const maxWaitTime = 30000; // 30 seconds
+            const startTime = Date.now();
+
+            while (this.activeOperations.size > 0 && (Date.now() - startTime) < maxWaitTime) {
+                this.logger.log(`Waiting for ${this.activeOperations.size} active producer operations to complete...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            if (this.activeOperations.size > 0) {
+                this.logger.warn(`Forcefully shutting down producer with ${this.activeOperations.size} active operations remaining`);
+            }
+
+            // Flush any pending messages
+            if (this.producer) {
+                // Note: KafkaJS producer doesn't have a flush method
+                // The producer will automatically flush on disconnect
+                this.logger.log('Kafka producer will flush pending messages on disconnect');
+            }
+
+            // Disconnect from Kafka
+            if (this.producer) {
+                await this.producer.disconnect();
+                this.logger.log('Kafka producer disconnected');
+            }
+
+            this.logger.log('Kafka producer graceful shutdown completed');
+        } catch (error) {
+            this.logger.error('Error during producer graceful shutdown:', error);
+            throw error;
         }
     }
 
     private async sendRecord(record: ProducerRecord, logMessage: string, errorMessage: string): Promise<void> {
+        if (this.isShuttingDown) {
+            this.logger.warn('Skipping message production during shutdown');
+            return;
+        }
+
+        const operationId = `produce-${Date.now()}-${Math.random()}`;
+        this.activeOperations.add(operationId);
+
         try {
             await this.producer.send(record);
             this.logger.log(logMessage);
         } catch (error) {
             this.logger.error(errorMessage, error);
             throw error;
+        } finally {
+            this.activeOperations.delete(operationId);
         }
     }
 
@@ -173,6 +230,20 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
             this.logger.error(`Failed to retry kafka message for entry ${kafkaEntry.id}:`, error);
             throw error;
         }
+    }
+
+    /**
+     * Get the number of active operations currently being processed
+     */
+    getActiveOperationsCount(): number {
+        return this.activeOperations.size;
+    }
+
+    /**
+     * Check if the producer is currently shutting down
+     */
+    isShuttingDownStatus(): boolean {
+        return this.isShuttingDown;
     }
 
 }

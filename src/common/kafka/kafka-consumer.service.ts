@@ -13,6 +13,9 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(KafkaConsumerService.name);
     private kafka: Kafka;
     private consumer: Consumer;
+    private isShuttingDown = false;
+    private activeOperations = new Set<string>();
+    private shutdownPromise: Promise<void> | null = null;
 
     constructor(
         private readonly configService: ConfigurationService,
@@ -50,9 +53,52 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     }
 
     async onModuleDestroy() {
-        if (this.consumer) {
-            await this.consumer.disconnect();
-            this.logger.log('Kafka consumer disconnected');
+        await this.gracefulShutdown();
+    }
+
+    async gracefulShutdown(): Promise<void> {
+        if (this.shutdownPromise) {
+            return this.shutdownPromise;
+        }
+
+        this.shutdownPromise = this.performGracefulShutdown();
+        return this.shutdownPromise;
+    }
+
+    private async performGracefulShutdown(): Promise<void> {
+        this.logger.log('Starting graceful shutdown of Kafka consumer...');
+        this.isShuttingDown = true;
+
+        try {
+            // Wait for active operations to complete
+            const maxWaitTime = 30000; // 30 seconds
+            const startTime = Date.now();
+
+            while (this.activeOperations.size > 0 && (Date.now() - startTime) < maxWaitTime) {
+                this.logger.log(`Waiting for ${this.activeOperations.size} active operations to complete...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            if (this.activeOperations.size > 0) {
+                this.logger.warn(`Forcefully shutting down with ${this.activeOperations.size} active operations remaining`);
+            }
+
+            // Stop consuming new messages
+            if (this.consumer) {
+                await this.consumer.stop();
+                this.logger.log('Kafka consumer stopped');
+            }
+
+            // Disconnect from Kafka
+            if (this.consumer) {
+                await this.consumer.disconnect();
+                this.logger.log('Kafka consumer disconnected');
+            }
+
+            this.logger.log('Kafka consumer graceful shutdown completed');
+        } catch (error) {
+            this.logger.error('Error during graceful shutdown:', error);
+            throw error;
         }
     }
 
@@ -103,6 +149,14 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
         try {
             await this.consumer.run({
                 eachMessage: async (payload) => {
+                    if (this.isShuttingDown) {
+                        this.logger.warn('Received message during shutdown, skipping processing');
+                        return;
+                    }
+
+                    const operationId = `${payload.topic}-${payload.partition}-${payload.message.offset}`;
+                    this.activeOperations.add(operationId);
+
                     try {
                         this.logger.debug(`Received message from topic ${payload.topic}:`, {
                             partition: payload.partition,
@@ -113,6 +167,8 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
                     } catch (error) {
                         this.logger.error(`Error processing message from topic ${payload.topic}:`, error);
                         throw error;
+                    } finally {
+                        this.activeOperations.delete(operationId);
                     }
                 },
             });
@@ -159,6 +215,11 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     // }
 
     async processMessage(payload: EachMessagePayload): Promise<void> {
+        if (this.isShuttingDown) {
+            this.logger.warn('Skipping message processing during shutdown');
+            return;
+        }
+
         try {
             const message: KafkaMessageDto = JSON.parse(payload.message.value.toString());
             if (message.headers?.retryAt) {
@@ -228,5 +289,19 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
             this.logger.error('Failed to get active consumer count:', error);
             return 1; // Fallback on error
         }
+    }
+
+    /**
+     * Get the number of active operations currently being processed
+     */
+    getActiveOperationsCount(): number {
+        return this.activeOperations.size;
+    }
+
+    /**
+     * Check if the consumer is currently shutting down
+     */
+    isShuttingDownStatus(): boolean {
+        return this.isShuttingDown;
     }
 }

@@ -22,6 +22,9 @@ let KafkaProducerService = KafkaProducerService_1 = class KafkaProducerService {
         this.configService = configService;
         this.databaseService = databaseService;
         this.logger = new common_1.Logger(KafkaProducerService_1.name);
+        this.isShuttingDown = false;
+        this.activeOperations = new Set();
+        this.shutdownPromise = null;
         this.kafkaTopic = this.configService.getKafkaConfig().topicName;
         this.dlqKafkaTopic = this.configService.getKafkaConfig().dlqTopicName;
     }
@@ -51,12 +54,49 @@ let KafkaProducerService = KafkaProducerService_1 = class KafkaProducerService {
         this.logger.log('Kafka producer connected successfully');
     }
     async onModuleDestroy() {
-        if (this.producer) {
-            await this.producer.disconnect();
-            this.logger.log('Kafka producer disconnected');
+        await this.gracefulShutdown();
+    }
+    async gracefulShutdown() {
+        if (this.shutdownPromise) {
+            return this.shutdownPromise;
+        }
+        this.shutdownPromise = this.performGracefulShutdown();
+        return this.shutdownPromise;
+    }
+    async performGracefulShutdown() {
+        this.logger.log('Starting graceful shutdown of Kafka producer...');
+        this.isShuttingDown = true;
+        try {
+            const maxWaitTime = 30000;
+            const startTime = Date.now();
+            while (this.activeOperations.size > 0 && (Date.now() - startTime) < maxWaitTime) {
+                this.logger.log(`Waiting for ${this.activeOperations.size} active producer operations to complete...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            if (this.activeOperations.size > 0) {
+                this.logger.warn(`Forcefully shutting down producer with ${this.activeOperations.size} active operations remaining`);
+            }
+            if (this.producer) {
+                this.logger.log('Kafka producer will flush pending messages on disconnect');
+            }
+            if (this.producer) {
+                await this.producer.disconnect();
+                this.logger.log('Kafka producer disconnected');
+            }
+            this.logger.log('Kafka producer graceful shutdown completed');
+        }
+        catch (error) {
+            this.logger.error('Error during producer graceful shutdown:', error);
+            throw error;
         }
     }
     async sendRecord(record, logMessage, errorMessage) {
+        if (this.isShuttingDown) {
+            this.logger.warn('Skipping message production during shutdown');
+            return;
+        }
+        const operationId = `produce-${Date.now()}-${Math.random()}`;
+        this.activeOperations.add(operationId);
         try {
             await this.producer.send(record);
             this.logger.log(logMessage);
@@ -64,6 +104,9 @@ let KafkaProducerService = KafkaProducerService_1 = class KafkaProducerService {
         catch (error) {
             this.logger.error(errorMessage, error);
             throw error;
+        }
+        finally {
+            this.activeOperations.delete(operationId);
         }
     }
     async produceKafkaEvent(topic, event, key) {
@@ -145,6 +188,12 @@ let KafkaProducerService = KafkaProducerService_1 = class KafkaProducerService {
             this.logger.error(`Failed to retry kafka message for entry ${kafkaEntry.id}:`, error);
             throw error;
         }
+    }
+    getActiveOperationsCount() {
+        return this.activeOperations.size;
+    }
+    isShuttingDownStatus() {
+        return this.isShuttingDown;
     }
 };
 exports.KafkaProducerService = KafkaProducerService;

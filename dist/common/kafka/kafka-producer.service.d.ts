@@ -11,10 +11,15 @@ export declare class KafkaProducerService implements OnModuleInit, OnModuleDestr
     private producer;
     private kafkaTopic;
     private dlqKafkaTopic;
+    private isShuttingDown;
+    private activeOperations;
+    private shutdownPromise;
     constructor(configService: ConfigurationService, databaseService: DatabaseService);
     onModuleInit(): Promise<void>;
     kafkaConnect(): Promise<void>;
     onModuleDestroy(): Promise<void>;
+    gracefulShutdown(): Promise<void>;
+    private performGracefulShutdown;
     private sendRecord;
     produceKafkaEvent(topic: string, event: any, key?: string): Promise<void>;
     sendMessage(topic: string, message: any, key?: string): Promise<void>;
@@ -24,4 +29,6 @@ export declare class KafkaProducerService implements OnModuleInit, OnModuleDestr
     }>): Promise<void>;
     sendMessageWithPartition(topic: string, message: any, partition: number, key?: string): Promise<void>;
     retryKafkaMessage(kafkaEntry: KafkaEntryEntity, kafkaMessage: KafkaMessageDto, errorMessage?: string): Promise<void>;
+    getActiveOperationsCount(): number;
+    isShuttingDownStatus(): boolean;
 }

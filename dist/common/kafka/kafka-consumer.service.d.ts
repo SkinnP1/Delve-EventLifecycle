@@ -14,9 +14,14 @@ export declare class KafkaConsumerService implements OnModuleInit, OnModuleDestr
     private readonly logger;
     private kafka;
     private consumer;
+    private isShuttingDown;
+    private activeOperations;
+    private shutdownPromise;
     constructor(configService: ConfigurationService, kafkaProducer: KafkaProducerService, notificationService: NotificationService, userService: UserService, testService: TestService);
     onModuleInit(): Promise<void>;
     onModuleDestroy(): Promise<void>;
+    gracefulShutdown(): Promise<void>;
+    private performGracefulShutdown;
     subscribeToTopic(topic: string, fromBeginning?: boolean): Promise<void>;
     subscribeToMultipleTopics(topics: string[], fromBeginning?: boolean): Promise<void>;
     subscribeToAllConfiguredTopics(fromBeginning?: boolean): Promise<void>;
@@ -25,4 +30,6 @@ export declare class KafkaConsumerService implements OnModuleInit, OnModuleDestr
     processMessage(payload: EachMessagePayload): Promise<void>;
     getAdminClient(): import("kafkajs").Admin;
     getActiveConsumerCount(): Promise<number>;
+    getActiveOperationsCount(): number;
+    isShuttingDownStatus(): boolean;
 }
