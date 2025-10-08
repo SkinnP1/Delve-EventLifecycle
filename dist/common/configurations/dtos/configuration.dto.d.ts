@@ -44,11 +44,15 @@ export declare class ConfigurationDto {
     KAFKA_PRODUCER_BUFFER_MEMORY: number;
     KAFKA_PRODUCER_COMPRESSION_TYPE: string;
     ANALYTICS_FAILURE_RATE: number;
-    ANALYTICS_LATENCY: number;
+    ANALYTICS_MIN_LATENCY: number;
+    ANALYTICS_MAX_LATENCY: number;
     EMAIL_FAILURE_RATE: number;
-    EMAIL_LATENCY: number;
+    EMAIL_MIN_LATENCY: number;
+    EMAIL_MAX_LATENCY: number;
     SMS_FAILURE_RATE: number;
-    SMS_LATENCY: number;
+    SMS_MIN_LATENCY: number;
+    SMS_MAX_LATENCY: number;
     TEST_RUNNER_FAILURE_RATE: number;
-    TEST_RUNNER_LATENCY: number;
+    TEST_RUNNER_MIN_LATENCY: number;
+    TEST_RUNNER_MAX_LATENCY: number;
 }

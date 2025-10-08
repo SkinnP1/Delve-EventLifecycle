@@ -243,7 +243,12 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
-], ConfigurationDto.prototype, "ANALYTICS_LATENCY", void 0);
+], ConfigurationDto.prototype, "ANALYTICS_MIN_LATENCY", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "ANALYTICS_MAX_LATENCY", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsNumber)(),
@@ -253,7 +258,12 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
-], ConfigurationDto.prototype, "EMAIL_LATENCY", void 0);
+], ConfigurationDto.prototype, "EMAIL_MIN_LATENCY", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "EMAIL_MAX_LATENCY", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsNumber)(),
@@ -263,7 +273,12 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
-], ConfigurationDto.prototype, "SMS_LATENCY", void 0);
+], ConfigurationDto.prototype, "SMS_MIN_LATENCY", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "SMS_MAX_LATENCY", void 0);
 __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsNumber)(),
@@ -273,5 +288,10 @@ __decorate([
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
-], ConfigurationDto.prototype, "TEST_RUNNER_LATENCY", void 0);
+], ConfigurationDto.prototype, "TEST_RUNNER_MIN_LATENCY", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], ConfigurationDto.prototype, "TEST_RUNNER_MAX_LATENCY", void 0);
 //# sourceMappingURL=configuration.dto.js.map

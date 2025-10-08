@@ -1,4 +1,5 @@
 export class TestRunnerConfigDto {
     failureRate: number;
-    latency: number;
+    minLatency: number;
+    maxLatency: number;
 }

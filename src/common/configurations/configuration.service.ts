@@ -82,13 +82,17 @@ export class ConfigurationService {
             KAFKA_PRODUCER_COMPRESSION_TYPE: process.env.KAFKA_PRODUCER_COMPRESSION_TYPE || 'none',
 
             // Service Configuration
-            ANALYTICS_LATENCY: parseInt(process.env.ANALYTICS_LATENCY || '200'),
+            ANALYTICS_MIN_LATENCY: parseInt(process.env.ANALYTICS_MIN_LATENCY || '100'),
+            ANALYTICS_MAX_LATENCY: parseInt(process.env.ANALYTICS_MAX_LATENCY || '300'),
             ANALYTICS_FAILURE_RATE: parseFloat(process.env.ANALYTICS_FAILURE_RATE || '0.02'),
-            EMAIL_LATENCY: parseInt(process.env.EMAIL_LATENCY || '1000'),
+            EMAIL_MIN_LATENCY: parseInt(process.env.EMAIL_MIN_LATENCY || '800'),
+            EMAIL_MAX_LATENCY: parseInt(process.env.EMAIL_MAX_LATENCY || '1200'),
             EMAIL_FAILURE_RATE: parseFloat(process.env.EMAIL_FAILURE_RATE || '0.05'),
-            SMS_LATENCY: parseInt(process.env.SMS_LATENCY || '350'),
+            SMS_MIN_LATENCY: parseInt(process.env.SMS_MIN_LATENCY || '200'),
+            SMS_MAX_LATENCY: parseInt(process.env.SMS_MAX_LATENCY || '500'),
             SMS_FAILURE_RATE: parseFloat(process.env.SMS_FAILURE_RATE || '0.03'),
-            TEST_RUNNER_LATENCY: parseInt(process.env.TEST_RUNNER_LATENCY || '2000'),
+            TEST_RUNNER_MIN_LATENCY: parseInt(process.env.TEST_RUNNER_MIN_LATENCY || '1000'),
+            TEST_RUNNER_MAX_LATENCY: parseInt(process.env.TEST_RUNNER_MAX_LATENCY || '3000'),
             TEST_RUNNER_FAILURE_RATE: parseFloat(process.env.TEST_RUNNER_FAILURE_RATE || '0.1'),
         };
 
@@ -245,7 +249,8 @@ export class ConfigurationService {
     getAnalyticsConfig(): AnalyticsConfigDto {
         return {
             failureRate: this.config.ANALYTICS_FAILURE_RATE,
-            latency: this.config.ANALYTICS_LATENCY,
+            minLatency: this.config.ANALYTICS_MIN_LATENCY,
+            maxLatency: this.config.ANALYTICS_MAX_LATENCY,
         };
     }
 
@@ -253,7 +258,8 @@ export class ConfigurationService {
     getEmailConfig(): EmailConfigDto {
         return {
             failureRate: this.config.EMAIL_FAILURE_RATE,
-            latency: this.config.EMAIL_LATENCY,
+            minLatency: this.config.EMAIL_MIN_LATENCY,
+            maxLatency: this.config.EMAIL_MAX_LATENCY,
         };
     }
 
@@ -261,14 +267,16 @@ export class ConfigurationService {
     getSmsConfig(): SmsConfigDto {
         return {
             failureRate: this.config.SMS_FAILURE_RATE,
-            latency: this.config.SMS_LATENCY,
+            minLatency: this.config.SMS_MIN_LATENCY,
+            maxLatency: this.config.SMS_MAX_LATENCY,
         };
     }
 
     getTestRunnerConfig(): TestRunnerConfigDto {
         return {
             failureRate: this.config.TEST_RUNNER_FAILURE_RATE,
-            latency: this.config.TEST_RUNNER_LATENCY,
+            minLatency: this.config.TEST_RUNNER_MIN_LATENCY,
+            maxLatency: this.config.TEST_RUNNER_MAX_LATENCY,
         };
     }
 }

@@ -190,7 +190,11 @@ export class ConfigurationDto {
 
     @IsNotEmpty()
     @IsNumber()
-    ANALYTICS_LATENCY: number;
+    ANALYTICS_MIN_LATENCY: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    ANALYTICS_MAX_LATENCY: number;
 
     @IsNotEmpty()
     @IsNumber()
@@ -198,7 +202,11 @@ export class ConfigurationDto {
 
     @IsNotEmpty()
     @IsNumber()
-    EMAIL_LATENCY: number;
+    EMAIL_MIN_LATENCY: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    EMAIL_MAX_LATENCY: number;
 
     @IsNotEmpty()
     @IsNumber()
@@ -206,7 +214,11 @@ export class ConfigurationDto {
 
     @IsNotEmpty()
     @IsNumber()
-    SMS_LATENCY: number;
+    SMS_MIN_LATENCY: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    SMS_MAX_LATENCY: number;
 
     @IsNotEmpty()
     @IsNumber()
@@ -214,5 +226,9 @@ export class ConfigurationDto {
 
     @IsNotEmpty()
     @IsNumber()
-    TEST_RUNNER_LATENCY: number;
+    TEST_RUNNER_MIN_LATENCY: number;
+
+    @IsNotEmpty()
+    @IsNumber()
+    TEST_RUNNER_MAX_LATENCY: number;
 }

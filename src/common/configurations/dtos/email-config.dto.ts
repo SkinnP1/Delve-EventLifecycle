@@ -1,4 +1,5 @@
 export class EmailConfigDto {
     failureRate: number;
-    latency: number;
+    minLatency: number;
+    maxLatency: number;
 }

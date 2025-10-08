@@ -16,11 +16,13 @@ export class TestRunnerService {
 
         try {
             // Get configuration from environment
-            const testLatency = this.testRunnerConfig.latency; // Default 2000ms
             const testFailureRate = this.testRunnerConfig.failureRate; // Default 10%
 
+            // Generate random latency within min/max range
+            const randomLatency = Math.floor(Math.random() * (this.testRunnerConfig.maxLatency - this.testRunnerConfig.minLatency + 1)) + this.testRunnerConfig.minLatency;
+
             // Simulate latency
-            await this.delay(testLatency);
+            await this.delay(randomLatency);
 
             // Simulate failure based on failure rate
             if (Math.random() < testFailureRate) {

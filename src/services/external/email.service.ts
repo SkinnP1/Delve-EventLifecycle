@@ -15,11 +15,13 @@ export class EmailService {
 
         try {
             // Get configuration from environment
-            const emailLatency = this.emailConfig.latency; // Default 1000ms
             const emailFailureRate = this.emailConfig.failureRate; // Default 5%
 
+            // Generate random latency within min/max range
+            const randomLatency = Math.floor(Math.random() * (this.emailConfig.maxLatency - this.emailConfig.minLatency + 1)) + this.emailConfig.minLatency;
+
             // Simulate latency
-            await this.delay(emailLatency);
+            await this.delay(randomLatency);
 
             // Simulate failure based on failure rate
             if (Math.random() < emailFailureRate) {

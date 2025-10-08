@@ -16,11 +16,13 @@ export class SmsService {
 
         try {
             // Get configuration from environment
-            const smsLatency = this.smsConfig.latency; // Default 350ms
             const smsFailureRate = this.smsConfig.failureRate; // Default 3%
 
+            // Generate random latency within min/max range
+            const randomLatency = Math.floor(Math.random() * (this.smsConfig.maxLatency - this.smsConfig.minLatency + 1)) + this.smsConfig.minLatency;
+
             // Simulate latency
-            await this.delay(smsLatency);
+            await this.delay(randomLatency);
 
             // Simulate failure based on failure rate
             if (Math.random() < smsFailureRate) {

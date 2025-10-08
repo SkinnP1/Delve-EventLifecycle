@@ -15,11 +15,13 @@ export class AnalyticsService {
 
         try {
             // Get configuration from environment
-            const analyticsLatency = this.analyticsConfig.latency; // Default 200ms
             const analyticsFailureRate = this.analyticsConfig.failureRate; // Default 2%
 
+            // Generate random latency within min/max range
+            const randomLatency = Math.floor(Math.random() * (this.analyticsConfig.maxLatency - this.analyticsConfig.minLatency + 1)) + this.analyticsConfig.minLatency;
+
             // Simulate latency
-            await this.delay(analyticsLatency);
+            await this.delay(randomLatency);
 
             // Simulate failure based on failure rate
             if (Math.random() < analyticsFailureRate) {

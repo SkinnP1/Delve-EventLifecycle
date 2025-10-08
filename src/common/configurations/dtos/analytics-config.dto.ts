@@ -1,4 +1,5 @@
 export class AnalyticsConfigDto {
     failureRate: number;
-    latency: number;
+    minLatency: number;
+    maxLatency: number;
 }

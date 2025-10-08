@@ -1,4 +1,5 @@
 export class SmsConfigDto {
     failureRate: number;
-    latency: number;
+    minLatency: number;
+    maxLatency: number;
 }
