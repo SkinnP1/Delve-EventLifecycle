@@ -187,9 +187,6 @@ export class UserService {
         await this.databaseService.updateKafkaEntry(kafkaEntry, EventStageEnum.CREATE_PROFILE)
         try {
             // Add logic to create user profile
-            if (kafkaEntry.retryCount < 2) {
-                throw new Error('Simulated transient error during profile creation');
-            }
             console.log('createProfile', "success");
             await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.SUCCESS);
 
