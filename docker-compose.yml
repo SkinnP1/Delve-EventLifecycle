@@ -102,76 +102,72 @@ services:
     networks:
       - delve-network
 
-      # app:
-      #   build: .
-      #   container_name: delve-app
-      #   restart: unless-stopped
-      #   depends_on:
-      #     postgres:
-      #       condition: service_healthy
-      #     kafka:
-      #       condition: service_healthy
-      #     kafka-topics:
-      #       condition: service_completed_successfully
-      #   environment:
-      #     # Application Configuration
-      #     APP_NAME: Delve
-      #     APP_VERSION: 1.0.0
-      #     APP_DESCRIPTION: A simple NestJS application called Delve
-      #     APP_PORT: 3000
-      #     NODE_ENV: production
-      
-      #     # Database Configuration
-      #     DB_HOST: postgres
-      #     DB_PORT: 5432
-      #     DB_USERNAME: postgres
-      #     DB_PASSWORD: password
-      #     DB_DATABASE: delve_db
-      
-      #     # API Configuration
-      #     API_PREFIX: api
-      #     API_VERSION: v1
-      #     API_TIMEOUT: 30000
-      #     CORS_ORIGIN: "*"
-      #     RATE_LIMIT: 100
-      
-      #     # Logging Configuration
-      #     LOG_LEVEL: info
-      #     LOG_FORMAT: combined
-      #     LOG_MAX_SIZE: 10m
-      #     LOG_MAX_FILES: 5
-      
-#     # Kafka Configuration
-#     KAFKA_BROKERS: kafka:29092
-#     KAFKA_CLIENT_ID: delve-app
-#     KAFKA_GROUP_ID: delve-group
-#     KAFKA_TOPIC: delve-kafka-topic
-#     KAFKA_AUTO_OFFSET_RESET: earliest
-#     KAFKA_SESSION_TIMEOUT: 30000
-#     KAFKA_HEARTBEAT_INTERVAL: 3000
-#     KAFKA_MAX_POLL_RECORDS: 500
-#     KAFKA_ENABLE_AUTO_COMMIT: "true"
-#     KAFKA_RETRY_BACKOFF: 100
-#     KAFKA_RETRY_ATTEMPTS: 3
-#     KAFKA_SSL_ENABLED: "false"
-#     KAFKA_SASL_MECHANISM: PLAIN
-#     KAFKA_SECURITY_PROTOCOL: PLAINTEXT
-#     KAFKA_CONSUMER_TIMEOUT: 1000
-#     KAFKA_PRODUCER_ACKS: all
-#     KAFKA_PRODUCER_RETRIES: 3
-#     KAFKA_PRODUCER_BATCH_SIZE: 16384
-#     KAFKA_PRODUCER_LINGER_MS: 5
-#     KAFKA_PRODUCER_BUFFER_MEMORY: 33554432
-#     KAFKA_PRODUCER_COMPRESSION_TYPE: none
-#   ports:
-#     - "3000:3000"
-#   networks:
-#     - delve-network
-#   healthcheck:
-#     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/health"]
-#     interval: 30s
-#     timeout: 10s
-#     retries: 3
+  app:
+    build: .
+    container_name: delve-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      kafka-topics:
+        condition: service_completed_successfully
+    environment:
+      # Application Configuration
+      - APP_NAME=Delve
+      - APP_VERSION=1.0.0
+      - APP_DESCRIPTION=A simple NestJS application called Delve
+      - APP_PORT=3000
+      - NODE_ENV=development
+      # Database Configuration
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - DB_DATABASE=delve_db
+      # API Configuration
+      - API_PREFIX=api
+      - API_VERSION=v1
+      - API_TIMEOUT=30000
+      - CORS_ORIGIN=*
+      - RATE_LIMIT=100
+      # Logging Configuration
+      - LOG_LEVEL=info
+      - LOG_FORMAT=combined
+      - LOG_MAX_SIZE=10m
+      - LOG_MAX_FILES=5
+      # Kafka Configuration
+      - KAFKA_BROKERS=kafka:29092
+      - KAFKA_CLIENT_ID=delve-app
+      - KAFKA_GROUP_ID=delve-group
+      - KAFKA_TOPIC=delve-kafka-topic
+      - KAFKA_AUTO_OFFSET_RESET=earliest
+      - KAFKA_SESSION_TIMEOUT=30000
+      - KAFKA_HEARTBEAT_INTERVAL=3000
+      - KAFKA_MAX_POLL_RECORDS=500
+      - KAFKA_ENABLE_AUTO_COMMIT=true
+      - KAFKA_RETRY_BACKOFF=100
+      - KAFKA_RETRY_ATTEMPTS=3
+      - KAFKA_SSL_ENABLED=false
+      - KAFKA_SASL_MECHANISM=PLAIN
+      - KAFKA_SECURITY_PROTOCOL=PLAINTEXT
+      - KAFKA_CONSUMER_TIMEOUT=1000
+      - KAFKA_PRODUCER_ACKS=all
+      - KAFKA_PRODUCER_RETRIES=3
+      - KAFKA_PRODUCER_BATCH_SIZE=16384
+      - KAFKA_PRODUCER_LINGER_MS=5
+      - KAFKA_PRODUCER_BUFFER_MEMORY=33554432
+      - KAFKA_PRODUCER_COMPRESSION_TYPE=none
+    ports:
+      - "3000:3000"
+    networks:
+      - delve-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:
