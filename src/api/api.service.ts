@@ -13,6 +13,7 @@ import { KafkaMessageDto } from './dto/kafka-message.dto';
 import { DatabaseService } from 'src/common/database/database.service';
 import { CircuitBreakerService } from 'src/common/circuit-breaker/circuit-breaker.service';
 import { KafkaConsumerService } from 'src/common/kafka/kafka-consumer.service';
+import { error } from 'console';
 
 @Injectable()
 export class ApiService {
@@ -93,7 +94,17 @@ export class ApiService {
     }
 
     // Utility method to convert error format
-    private convertErrors(errors: any): ErrorDto[] {
+    private convertErrors(kafkaEntry: KafkaEntryEntity): ErrorDto[] {
+        if (kafkaEntry?.child?.status === KafkaStatusEnum.COMPLETED) {
+            return []
+        }
+        let errors;
+        if (kafkaEntry?.child?.error) {
+            errors = kafkaEntry.child.error
+        }
+        else {
+            errors = kafkaEntry.error
+        }
         if (!errors) {
             return [];
         }
@@ -152,7 +163,7 @@ export class ApiService {
                 status: kafkaEntry?.child?.status || kafkaEntry.status,
                 attempts: kafkaEntry.retryCount,
                 completed_stages: this.convertCompletedStages(kafkaEntry.completedStages),
-                errors: this.convertErrors(kafkaEntry.error)
+                errors: this.convertErrors(kafkaEntry),
             };
 
             return response;
@@ -278,17 +289,17 @@ export class ApiService {
             // Get all circuit breaker states from the service
             const allStates = this.circuitBreakerService.getAllCircuitBreakerStates();
 
-            // Check individual service stats
-            const services = ['email_service', 'sms_service', 'test_runner_service', 'analytics_service'];
+            // Check individual service stats - using the correct service names with hyphens
+            const services = ['email-service', 'sms-service', 'test-runner-service', 'analytics-service'];
             for (const service of services) {
                 const stats = this.circuitBreakerService.getStats(service);
             }
 
             const circuitBreakers: CircuitBreakerDto = {
-                email_service: allStates['email_service'] || allStates['email-service'] || 'closed',
-                sms_service: allStates['sms_service'] || allStates['sms-service'] || 'closed',
-                test_runner_service: allStates['test_runner_service'] || allStates['test-runner-service'] || 'closed',
-                analytics_service: allStates['analytics_service'] || allStates['analytics-service'] || 'closed'
+                email_service: allStates['email-service'] || 'closed',
+                sms_service: allStates['sms-service'] || 'closed',
+                test_runner_service: allStates['test-runner-service'] || 'closed',
+                analytics_service: allStates['analytics-service'] || 'closed'
             };
 
             return circuitBreakers;

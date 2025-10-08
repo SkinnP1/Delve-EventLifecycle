@@ -334,7 +334,8 @@ export class DatabaseService {
             retryCount: 0,
             eventStage: parentKafkaEntry.eventStage,
             data: parentKafkaEntry.data,
-            error: null
+            error: null,
+            completedStages: parentKafkaEntry.completedStages,
         });
 
         // Save the child entity

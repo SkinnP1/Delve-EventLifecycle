@@ -159,12 +159,37 @@ services:
       - KAFKA_PRODUCER_LINGER_MS=5
       - KAFKA_PRODUCER_BUFFER_MEMORY=33554432
       - KAFKA_PRODUCER_COMPRESSION_TYPE=none
+      # Additional Configuration
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/delve_db
+      - PORT=3000
+      # External Service Latency Configuration
+      # Analytics Service (100-300ms, 2% failure rate)
+      - ANALYTICS_MIN_LATENCY=100
+      - ANALYTICS_MAX_LATENCY=300
+      - ANALYTICS_FAILURE_RATE=0.02
+      # Email Service (800-1200ms, 50% failure rate)
+      - EMAIL_MIN_LATENCY=800
+      - EMAIL_MAX_LATENCY=1200
+      - EMAIL_FAILURE_RATE=0.5
+      # SMS Service (200-500ms, 3% failure rate)
+      - SMS_MIN_LATENCY=200
+      - SMS_MAX_LATENCY=500
+      - SMS_FAILURE_RATE=0.03
+      # Test Runner Service (1000-3000ms, 10% failure rate)
+      - TEST_RUNNER_MIN_LATENCY=1000
+      - TEST_RUNNER_MAX_LATENCY=3000
+      - TEST_RUNNER_FAILURE_RATE=0.1
+      # Kafka SASL Configuration
+      - KAFKA_SASL_USERNAME=
+      - KAFKA_SASL_PASSWORD=
+      # Logging Configuration
+      - LOG_FILE=logs/app.log
     ports:
       - "3000:3000"
     networks:
       - delve-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
