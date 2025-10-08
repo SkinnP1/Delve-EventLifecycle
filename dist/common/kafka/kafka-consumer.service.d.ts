@@ -18,6 +18,9 @@ export declare class KafkaConsumerService implements OnModuleInit, OnModuleDestr
     onModuleInit(): Promise<void>;
     onModuleDestroy(): Promise<void>;
     subscribeToTopic(topic: string, fromBeginning?: boolean): Promise<void>;
+    subscribeToMultipleTopics(topics: string[], fromBeginning?: boolean): Promise<void>;
+    subscribeToAllConfiguredTopics(fromBeginning?: boolean): Promise<void>;
     startConsuming(messageHandler: (payload: EachMessagePayload) => Promise<void>): Promise<void>;
+    addTopicSubscription(topic: string, fromBeginning?: boolean): Promise<void>;
     processMessage(payload: EachMessagePayload): Promise<void>;
 }

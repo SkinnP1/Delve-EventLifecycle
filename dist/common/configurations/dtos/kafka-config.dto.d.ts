@@ -22,4 +22,5 @@ export declare class KafkaConfigDto {
     producerLingerMs: number;
     producerBufferMemory: number;
     producerCompressionType: string;
+    dlqTopicName: string;
 }

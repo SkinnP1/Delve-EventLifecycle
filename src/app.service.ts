@@ -20,10 +20,9 @@ export class AppService implements OnModuleInit {
     private async startKafkaConsumer(): Promise<void> {
         try {
             const kafkaConfig = this.configService.getKafkaConfig();
-            const topic = kafkaConfig.topicName;
 
-            // Subscribe to the configured topic
-            await this.kafkaConsumer.subscribeToTopic(topic, true);
+            // Subscribe to all configured topics (main topic + additional topics)
+            await this.kafkaConsumer.subscribeToAllConfiguredTopics(true);
 
             // Start consuming messages
             await this.kafkaConsumer.startConsuming(async (payload) => {
@@ -38,7 +37,8 @@ export class AppService implements OnModuleInit {
                 await this.kafkaConsumer.processMessage(payload);
             });
 
-            this.logger.log(`Kafka consumer started and listening to topic: ${topic}`);
+            const allTopics = [kafkaConfig.topicName, kafkaConfig.dlqTopicName];
+            this.logger.log(`Kafka consumer started and listening to topics: ${allTopics.join(', ')}`);
         } catch (error) {
             this.logger.error('Failed to start Kafka consumer:', error);
         }

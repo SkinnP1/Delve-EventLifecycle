@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 import { KafkaStatusEnum } from './enums/kafka-status.enum';
 import { EventStageEnum } from './enums/event-stage.enum';
 import { EventTypeEnum } from './enums/event-type.enum';
@@ -69,4 +69,11 @@ export class KafkaEntryEntity {
 
     @Column({ type: 'json', nullable: true })
     data: Record<string, any>;
+
+    @OneToOne(() => KafkaEntryEntity, child => child.parent, { nullable: true })
+    @JoinColumn()
+    child: KafkaEntryEntity;
+
+    @OneToOne(() => KafkaEntryEntity, child => child.child, { nullable: true })
+    parent: KafkaEntryEntity;
 }

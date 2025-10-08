@@ -22,6 +22,8 @@ let KafkaProducerService = KafkaProducerService_1 = class KafkaProducerService {
         this.configService = configService;
         this.databaseService = databaseService;
         this.logger = new common_1.Logger(KafkaProducerService_1.name);
+        this.kafkaTopic = this.configService.getKafkaConfig().topicName;
+        this.dlqKafkaTopic = this.configService.getKafkaConfig().dlqTopicName;
     }
     async onModuleInit() {
         await this.kafkaConnect();
@@ -113,12 +115,30 @@ let KafkaProducerService = KafkaProducerService_1 = class KafkaProducerService {
         try {
             await this.databaseService.updateEventLifecycle(kafkaEntry, lifecycle_status_enum_1.LifecycleStatusEnum.FAIL, errorMessage);
             if (kafkaEntry.retryCount === 3 && kafkaEntry.status === kafka_status_enum_1.KafkaStatusEnum.FAILED) {
-                this.logger.warn(`Retry limit exhausted for kafka entry ${kafkaEntry.id}. Moving to DLQ.`);
-                return;
+                if (kafkaEntry.topicName === this.kafkaTopic) {
+                    await this.databaseService.markKafkaEntryAsDLQ(kafkaEntry);
+                    this.logger.warn(`Retry limit exhausted for kafka entry ${kafkaEntry.id}. Moving to DLQ.`);
+                    const dlqMessage = {
+                        headers: {
+                            priority: kafkaEntry.child.priority,
+                            referenceId: kafkaEntry.child.referenceId,
+                            eventType: kafkaEntry.child.eventType,
+                            topicName: kafkaEntry.child.topicName,
+                            eventStage: kafkaEntry.eventStage
+                        },
+                        data: kafkaMessage
+                    };
+                    await this.produceKafkaEvent(kafkaEntry.child.topicName, dlqMessage, kafkaEntry.child.priority + kafkaEntry.child.referenceId);
+                    return;
+                }
+                else {
+                    await this.databaseService.markKafkaEntryAsDLQFailed(kafkaEntry);
+                    this.logger.warn(`Retry limit exhausted for kafka entry ${kafkaEntry.id}. No Further Processing.`);
+                    return;
+                }
             }
             kafkaMessage.headers.eventStage = kafkaEntry.eventStage;
             kafkaMessage.headers.retryAt = kafkaEntry.nextRetryAt;
-            console.log(kafkaEntry, kafkaMessage);
             await this.produceKafkaEvent(kafkaEntry.topicName, kafkaMessage, kafkaEntry.priority + kafkaEntry.referenceId);
         }
         catch (error) {

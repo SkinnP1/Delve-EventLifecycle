@@ -28,8 +28,7 @@ let AppService = AppService_1 = class AppService {
     async startKafkaConsumer() {
         try {
             const kafkaConfig = this.configService.getKafkaConfig();
-            const topic = kafkaConfig.topicName;
-            await this.kafkaConsumer.subscribeToTopic(topic, true);
+            await this.kafkaConsumer.subscribeToAllConfiguredTopics(true);
             await this.kafkaConsumer.startConsuming(async (payload) => {
                 this.logger.log(`Received message from topic ${payload.topic}:`, {
                     partition: payload.partition,
@@ -39,7 +38,8 @@ let AppService = AppService_1 = class AppService {
                 });
                 await this.kafkaConsumer.processMessage(payload);
             });
-            this.logger.log(`Kafka consumer started and listening to topic: ${topic}`);
+            const allTopics = [kafkaConfig.topicName, kafkaConfig.dlqTopicName];
+            this.logger.log(`Kafka consumer started and listening to topics: ${allTopics.join(', ')}`);
         }
         catch (error) {
             this.logger.error('Failed to start Kafka consumer:', error);

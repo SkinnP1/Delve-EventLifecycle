@@ -149,6 +149,7 @@ export class ConfigurationService {
             producerLingerMs: this.config.KAFKA_PRODUCER_LINGER_MS,
             producerBufferMemory: this.config.KAFKA_PRODUCER_BUFFER_MEMORY,
             producerCompressionType: this.config.KAFKA_PRODUCER_COMPRESSION_TYPE,
+            dlqTopicName: this.config.KAFKA_TOPIC + '-dlq',
         };
     }
 

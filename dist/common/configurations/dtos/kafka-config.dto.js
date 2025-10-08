@@ -130,4 +130,9 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], KafkaConfigDto.prototype, "producerCompressionType", void 0);
+__decorate([
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], KafkaConfigDto.prototype, "dlqTopicName", void 0);
 //# sourceMappingURL=kafka-config.dto.js.map

@@ -9,6 +9,8 @@ export declare class KafkaProducerService implements OnModuleInit, OnModuleDestr
     private readonly logger;
     private kafka;
     private producer;
+    private kafkaTopic;
+    private dlqKafkaTopic;
     constructor(configService: ConfigurationService, databaseService: DatabaseService);
     onModuleInit(): Promise<void>;
     kafkaConnect(): Promise<void>;

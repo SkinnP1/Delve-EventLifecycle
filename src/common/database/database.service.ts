@@ -5,8 +5,13 @@ import { EventLifecycleEntity } from '../../entities/event-lifecycle.entity';
 import { KafkaEntryEntity } from '../../entities/kafka-entry.entity';
 import { EventStageEnum } from '../../entities/enums/event-stage.enum';
 import { LifecycleStatusEnum } from '../../entities/enums/lifecycle-status.enum';
+import { EventTypeEnum } from '../../entities/enums/event-type.enum';
+import { PriorityEnum } from '../../entities/enums/priority.enum';
 import { KafkaMessageDto } from 'src/api/dto/kafka-message.dto';
 import { KafkaStatusEnum } from 'src/entities/enums/kafka-status.enum';
+import { v4 as uuidv4 } from 'uuid';
+import { ConfigurationService } from '../configurations/configuration.service';
+import { KafkaConfigDto } from '../configurations/dtos/kafka-config.dto';
 
 export interface CreateEventLifecycleDto {
     kafkaEntryId: number;
@@ -19,6 +24,7 @@ export interface UpdateEventLifecycleDto {
     eventStage?: EventStageEnum;
 }
 
+
 export interface EventLifecycleFilters {
     kafkaEntryId?: number;
     status?: LifecycleStatusEnum;
@@ -29,12 +35,14 @@ export interface EventLifecycleFilters {
 
 @Injectable()
 export class DatabaseService {
+    private readonly kafkaConfig: KafkaConfigDto;
     constructor(
         @InjectRepository(EventLifecycleEntity)
         private readonly eventLifecycleRepository: Repository<EventLifecycleEntity>,
         @InjectRepository(KafkaEntryEntity)
         private readonly kafkaEntryRepository: Repository<KafkaEntryEntity>,
-    ) { }
+        private readonly configurationService: ConfigurationService
+    ) { this.kafkaConfig = this.configurationService.getKafkaConfig() }
 
     /**
      * Create a new event lifecycle entry
@@ -276,6 +284,59 @@ export class DatabaseService {
             page,
             limit
         };
+    }
+
+    /**
+     * Mark Kafka entry as DLQ (Dead Letter Queue)
+     */
+    async markKafkaEntryAsDLQ(kafkaEntry: KafkaEntryEntity, reason?: string): Promise<KafkaEntryEntity> {
+        kafkaEntry.status = KafkaStatusEnum.DLQ;
+        kafkaEntry.error = {
+            ...kafkaEntry.error,
+            dlqReason: reason || 'Retry limit exhausted'
+        };
+        const childKafkaEntry = await this.createChildKafkaEntry(kafkaEntry);
+        kafkaEntry.child = childKafkaEntry;
+        await this.kafkaEntryRepository.save(kafkaEntry);
+        return kafkaEntry;
+    }
+
+    /**
+     * Mark Kafka entry as DLQ-FAILED (Dead Letter Queue Failed)
+     */
+    async markKafkaEntryAsDLQFailed(kafkaEntry: KafkaEntryEntity, reason?: string): Promise<KafkaEntryEntity> {
+        kafkaEntry.status = KafkaStatusEnum.DLQ_FAILED;
+        kafkaEntry.error = {
+            ...kafkaEntry.error,
+            dlqReason: reason || 'DLQ processing failed',
+        };
+        await this.kafkaEntryRepository.save(kafkaEntry);
+        return kafkaEntry;
+    }
+
+    /**
+     * Create a child KafkaEntryEntity and save it with parent relationship
+     */
+    async createChildKafkaEntry(
+        parentKafkaEntry: KafkaEntryEntity,
+    ): Promise<KafkaEntryEntity> {
+        // Create the child entity
+        const childKafkaEntry = this.kafkaEntryRepository.create({
+            referenceId: uuidv4(),
+            eventId: parentKafkaEntry.eventId,
+            topicName: this.kafkaConfig.dlqTopicName,
+            eventType: parentKafkaEntry.eventType,
+            priority: parentKafkaEntry.priority,
+            status: KafkaStatusEnum.QUEUE,
+            retryCount: 0,
+            eventStage: parentKafkaEntry.eventStage,
+            data: parentKafkaEntry.data,
+            error: null
+        });
+
+        // Save the child entity
+        const savedChild = await this.kafkaEntryRepository.save(childKafkaEntry);
+        return savedChild;
     }
 
     /**

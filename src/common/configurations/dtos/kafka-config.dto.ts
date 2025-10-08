@@ -93,4 +93,8 @@ export class KafkaConfigDto {
     @IsNotEmpty()
     @IsString()
     producerCompressionType: string;
+
+    @IsNotEmpty()
+    @IsString()
+    dlqTopicName: string;
 }

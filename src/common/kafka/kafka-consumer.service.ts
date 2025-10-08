@@ -69,6 +69,34 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
+    async subscribeToMultipleTopics(topics: string[], fromBeginning: boolean = false): Promise<void> {
+        try {
+            const subscriptionPromises = topics.map(topic =>
+                this.consumer.subscribe({
+                    topic,
+                    fromBeginning,
+                })
+            );
+
+            await Promise.all(subscriptionPromises);
+            this.logger.log(`Subscribed to topics: ${topics.join(', ')}`);
+        } catch (error) {
+            this.logger.error(`Failed to subscribe to topics ${topics.join(', ')}:`, error);
+            throw error;
+        }
+    }
+
+    async subscribeToAllConfiguredTopics(fromBeginning: boolean = false): Promise<void> {
+        const kafkaConfig = this.configService.getKafkaConfig();
+        const allTopics = [kafkaConfig.topicName, kafkaConfig.dlqTopicName];
+
+        if (allTopics.length === 1) {
+            await this.subscribeToTopic(allTopics[0], fromBeginning);
+        } else {
+            await this.subscribeToMultipleTopics(allTopics, fromBeginning);
+        }
+    }
+
     async startConsuming(
         messageHandler: (payload: EachMessagePayload) => Promise<void>
     ): Promise<void> {
@@ -94,6 +122,41 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
             throw error;
         }
     }
+
+    async addTopicSubscription(topic: string, fromBeginning: boolean = false): Promise<void> {
+        try {
+            await this.consumer.subscribe({
+                topic,
+                fromBeginning,
+            });
+            this.logger.log(`Added subscription to topic: ${topic}`);
+        } catch (error) {
+            this.logger.error(`Failed to add subscription to topic ${topic}:`, error);
+            throw error;
+        }
+    }
+
+    // async removeTopicSubscription(topic: string): Promise<void> {
+    //     try {
+    //         await this.consumer.unsubscribe([topic]);
+    //         this.logger.log(`Removed subscription from topic: ${topic}`);
+    //     } catch (error) {
+    //         this.logger.error(`Failed to remove subscription from topic ${topic}:`, error);
+    //         throw error;
+    //     }
+    // }
+
+    // async getSubscribedTopics(): Promise<string[]> {
+    //     try {
+    //         const subscriptions = await this.consumer.describeGroup();
+    //         return subscriptions.members.map(member =>
+    //             member.memberAssignment?.topicPartitions?.map(tp => tp.topic) || []
+    //         ).flat();
+    //     } catch (error) {
+    //         this.logger.error('Failed to get subscribed topics:', error);
+    //         return [];
+    //     }
+    // }
 
     async processMessage(payload: EachMessagePayload): Promise<void> {
         try {

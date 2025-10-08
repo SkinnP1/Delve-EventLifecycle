@@ -13,10 +13,15 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(KafkaProducerService.name);
     private kafka: Kafka;
     private producer: Producer;
+    private kafkaTopic: string;
+    private dlqKafkaTopic: string;
 
     constructor(private readonly configService: ConfigurationService,
         private readonly databaseService: DatabaseService
-    ) { }
+    ) {
+        this.kafkaTopic = this.configService.getKafkaConfig().topicName;
+        this.dlqKafkaTopic = this.configService.getKafkaConfig().dlqTopicName;
+    }
 
     async onModuleInit() {
         await this.kafkaConnect();
@@ -139,16 +144,35 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
             await this.databaseService.updateEventLifecycle(kafkaEntry, LifecycleStatusEnum.FAIL, errorMessage);
             if (kafkaEntry.retryCount === 3 && kafkaEntry.status === KafkaStatusEnum.FAILED) {
                 // Retry limit is exhausted. Push to DLQ
-                this.logger.warn(`Retry limit exhausted for kafka entry ${kafkaEntry.id}. Moving to DLQ.`);
-                return;
+                if (kafkaEntry.topicName === this.kafkaTopic) {
+                    await this.databaseService.markKafkaEntryAsDLQ(kafkaEntry);
+                    this.logger.warn(`Retry limit exhausted for kafka entry ${kafkaEntry.id}. Moving to DLQ.`);
+                    const dlqMessage: KafkaMessageDto = {
+                        headers: {
+                            priority: kafkaEntry.child.priority,
+                            referenceId: kafkaEntry.child.referenceId,
+                            eventType: kafkaEntry.child.eventType,
+                            topicName: kafkaEntry.child.topicName,
+                            eventStage: kafkaEntry.eventStage
+                        },
+                        data: kafkaMessage
+                    }
+                    await this.produceKafkaEvent(kafkaEntry.child.topicName, dlqMessage, kafkaEntry.child.priority + kafkaEntry.child.referenceId);
+                    return;
+                }
+                else {
+                    await this.databaseService.markKafkaEntryAsDLQFailed(kafkaEntry);
+                    this.logger.warn(`Retry limit exhausted for kafka entry ${kafkaEntry.id}. No Further Processing.`);
+                    return;
+                }
             }
             kafkaMessage.headers.eventStage = kafkaEntry.eventStage;
             kafkaMessage.headers.retryAt = kafkaEntry.nextRetryAt;
-            console.log(kafkaEntry, kafkaMessage);
             await this.produceKafkaEvent(kafkaEntry.topicName, kafkaMessage, kafkaEntry.priority + kafkaEntry.referenceId);
         } catch (error) {
             this.logger.error(`Failed to retry kafka message for entry ${kafkaEntry.id}:`, error);
             throw error;
         }
     }
+
 }

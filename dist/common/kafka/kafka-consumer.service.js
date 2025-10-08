@@ -70,6 +70,30 @@ let KafkaConsumerService = KafkaConsumerService_1 = class KafkaConsumerService {
             throw error;
         }
     }
+    async subscribeToMultipleTopics(topics, fromBeginning = false) {
+        try {
+            const subscriptionPromises = topics.map(topic => this.consumer.subscribe({
+                topic,
+                fromBeginning,
+            }));
+            await Promise.all(subscriptionPromises);
+            this.logger.log(`Subscribed to topics: ${topics.join(', ')}`);
+        }
+        catch (error) {
+            this.logger.error(`Failed to subscribe to topics ${topics.join(', ')}:`, error);
+            throw error;
+        }
+    }
+    async subscribeToAllConfiguredTopics(fromBeginning = false) {
+        const kafkaConfig = this.configService.getKafkaConfig();
+        const allTopics = [kafkaConfig.topicName, kafkaConfig.dlqTopicName];
+        if (allTopics.length === 1) {
+            await this.subscribeToTopic(allTopics[0], fromBeginning);
+        }
+        else {
+            await this.subscribeToMultipleTopics(allTopics, fromBeginning);
+        }
+    }
     async startConsuming(messageHandler) {
         try {
             await this.consumer.run({
@@ -92,6 +116,19 @@ let KafkaConsumerService = KafkaConsumerService_1 = class KafkaConsumerService {
         }
         catch (error) {
             this.logger.error('Failed to start consuming messages:', error);
+            throw error;
+        }
+    }
+    async addTopicSubscription(topic, fromBeginning = false) {
+        try {
+            await this.consumer.subscribe({
+                topic,
+                fromBeginning,
+            });
+            this.logger.log(`Added subscription to topic: ${topic}`);
+        }
+        catch (error) {
+            this.logger.error(`Failed to add subscription to topic ${topic}:`, error);
             throw error;
         }
     }
