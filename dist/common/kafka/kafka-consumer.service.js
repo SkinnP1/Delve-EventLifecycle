@@ -17,11 +17,15 @@ const configuration_service_1 = require("../configurations/configuration.service
 const kafka_producer_service_1 = require("./kafka-producer.service");
 const event_service_mapping_constants_1 = require("../constants/event-service-mapping.constants");
 const notification_service_1 = require("../../services/internal/notification.service");
+const user_service_1 = require("../../services/internal/user.service");
+const test_service_1 = require("../../services/internal/test.service");
 let KafkaConsumerService = KafkaConsumerService_1 = class KafkaConsumerService {
-    constructor(configService, kafkaProducer, notificationService) {
+    constructor(configService, kafkaProducer, notificationService, userService, testService) {
         this.configService = configService;
         this.kafkaProducer = kafkaProducer;
         this.notificationService = notificationService;
+        this.userService = userService;
+        this.testService = testService;
         this.logger = new common_1.Logger(KafkaConsumerService_1.name);
     }
     async onModuleInit() {
@@ -107,9 +111,11 @@ let KafkaConsumerService = KafkaConsumerService_1 = class KafkaConsumerService {
             switch (serviceName) {
                 case event_service_mapping_constants_1.ServiceNameEnum.USER_SERVICE:
                     this.logger.log(`Processing USER_CREATED event: ${JSON.stringify(message)}`);
+                    await this.userService.processUserMessage(message);
                     break;
                 case event_service_mapping_constants_1.ServiceNameEnum.TEST_SERVICE:
                     this.logger.log(`Processing TEST_RUN event: ${JSON.stringify(message)}`);
+                    await this.testService.processTestMessage(message);
                     break;
                 case event_service_mapping_constants_1.ServiceNameEnum.NOTIFICATION_SERVICE:
                     this.logger.log(`Processing notification event: ${JSON.stringify(message)}`);
@@ -130,6 +136,8 @@ exports.KafkaConsumerService = KafkaConsumerService = KafkaConsumerService_1 = _
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [configuration_service_1.ConfigurationService,
         kafka_producer_service_1.KafkaProducerService,
-        notification_service_1.NotificationService])
+        notification_service_1.NotificationService,
+        user_service_1.UserService,
+        test_service_1.TestService])
 ], KafkaConsumerService);
 //# sourceMappingURL=kafka-consumer.service.js.map

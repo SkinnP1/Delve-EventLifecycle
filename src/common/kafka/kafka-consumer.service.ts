@@ -5,6 +5,8 @@ import { KafkaMessageDto } from 'src/api/dto/kafka-message.dto';
 import { KafkaProducerService } from './kafka-producer.service';
 import { EVENT_SERVICE_MAPPING, ServiceNameEnum } from '../constants/event-service-mapping.constants';
 import { NotificationService } from 'src/services/internal/notification.service';
+import { UserService } from 'src/services/internal/user.service';
+import { TestService } from 'src/services/internal/test.service';
 
 @Injectable()
 export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
@@ -15,7 +17,9 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     constructor(
         private readonly configService: ConfigurationService,
         private readonly kafkaProducer: KafkaProducerService,
-        private readonly notificationService: NotificationService
+        private readonly notificationService: NotificationService,
+        private readonly userService: UserService,
+        private readonly testService: TestService
     ) { }
 
     async onModuleInit() {
@@ -109,10 +113,13 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
                 case ServiceNameEnum.USER_SERVICE:
                     // Handle user created event
                     this.logger.log(`Processing USER_CREATED event: ${JSON.stringify(message)}`);
+                    await this.userService.processUserMessage(message);
+
                     break;
                 case ServiceNameEnum.TEST_SERVICE:
                     // Handle test run event
                     this.logger.log(`Processing TEST_RUN event: ${JSON.stringify(message)}`);
+                    await this.testService.processTestMessage(message);
                     break;
                 case ServiceNameEnum.NOTIFICATION_SERVICE:
                     // Handle notification events
